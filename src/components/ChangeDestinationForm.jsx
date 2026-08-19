@@ -38,21 +38,29 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
 
   if (!isEditing) {
     return (
-      <div className="change-destination">
-        <button type="button" className="btn btn--secondary" onClick={openForm} disabled={isDelivered}>
+      <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={openForm}
+          disabled={isDelivered}
+        >
           Change destination
         </button>
-        {blockedMessage && <p className="field-message field-message--error">{blockedMessage}</p>}
+        {blockedMessage && <p className="text-sm text-caution">{blockedMessage}</p>}
       </div>
     )
   }
 
   return (
-    <form className="change-destination-form" onSubmit={handleSubmit}>
-      <label htmlFor="new-destination">New destination</label>
+    <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+      <label className="text-sm text-fog" htmlFor="new-destination">
+        New destination
+      </label>
       <input
         id="new-destination"
         type="text"
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-ink focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
         value={draftDestination}
         onChange={(e) => {
           setDraftDestination(e.target.value)
@@ -60,12 +68,16 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
         }}
         placeholder="e.g. Kilimani, Nairobi"
       />
-      {validationError && <p className="field-message field-message--error">{validationError}</p>}
-      <div className="change-destination-form__actions">
-        <button type="button" className="btn btn--ghost" onClick={() => setIsEditing(false)}>
+      {validationError && <p className="text-sm text-caution">{validationError}</p>}
+      <div className="mt-1 flex gap-2">
+        <button
+          type="button"
+          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
+          onClick={() => setIsEditing(false)}
+        >
           Cancel
         </button>
-        <button type="submit" className="btn btn--primary">
+        <button type="submit" className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-white">
           Save destination
         </button>
       </div>
