@@ -5,7 +5,6 @@ import StatusBadge from '../components/StatusBadge'
 import CancelDeliveryButton from '../components/CancelDeliveryButton'
 import ChangeDestinationForm from '../components/ChangeDestinationForm'
 import useAuth from '../hooks/useAuth'
-import './ParcelDetailsPage.css'
 
 function formatDate(isoString) {
   return new Date(isoString).toLocaleDateString('en-KE', {
@@ -21,14 +20,19 @@ export default function ParcelDetailsPage() {
   const { currentUser } = useAuth()
 
   if (!parcel) {
-    return <p className="parcel-details__empty">Parcel not found.</p>
+    return <p className="mx-auto max-w-xl p-5 text-left text-ink">Parcel not found.</p>
   }
 
   return (
-    <div className="parcel-details">
-      <header className="parcel-details__header">
-        <h2>Parcel details</h2>
-        <StatusBadge status={parcel.status} />
+    <div className="mx-auto max-w-xl p-5 text-left">
+      <header className="mb-4">
+        <p className="font-mono text-xs font-medium uppercase tracking-widest text-amber-500">
+          Parcel Details
+        </p>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <h1 className="font-display text-2xl font-bold text-ink">{parcel.id}</h1>
+          <StatusBadge status={parcel.status} />
+        </div>
       </header>
 
       {/*
@@ -36,38 +40,38 @@ export default function ParcelDetailsPage() {
         goes here. Pass parcel.pickupLocation / parcel.destination /
         parcel.currentLocation as props once the map component exists.
       */}
-      <div className="parcel-details__map-slot">
+      <div className="mb-5 flex h-44 items-center justify-center rounded-xl border border-slate-200 bg-white p-4 text-center text-sm text-fog">
         <span>Map goes here (pickup + destination markers, route line)</span>
       </div>
 
-      <dl className="parcel-details__info">
+      <dl className="mb-6 grid grid-cols-2 gap-4">
         <div>
-          <dt>Pickup location</dt>
-          <dd>{parcel.pickupLocation}</dd>
+          <dt className="font-mono text-xs uppercase tracking-wider text-fog">Pickup location</dt>
+          <dd className="mt-0.5 text-sm font-medium text-ink">{parcel.pickupLocation}</dd>
         </div>
         <div>
-          <dt>Destination</dt>
-          <dd>{parcel.destination}</dd>
+          <dt className="font-mono text-xs uppercase tracking-wider text-fog">Destination</dt>
+          <dd className="mt-0.5 text-sm font-medium text-ink">{parcel.destination}</dd>
         </div>
         <div>
-          <dt>Current location</dt>
-          <dd>{parcel.currentLocation}</dd>
+          <dt className="font-mono text-xs uppercase tracking-wider text-fog">Current location</dt>
+          <dd className="mt-0.5 text-sm font-medium text-ink">{parcel.currentLocation}</dd>
         </div>
         <div>
-          <dt>Weight</dt>
-          <dd>{parcel.weight}</dd>
+          <dt className="font-mono text-xs uppercase tracking-wider text-fog">Weight</dt>
+          <dd className="mt-0.5 text-sm font-medium text-ink">{parcel.weight}</dd>
         </div>
         <div>
-          <dt>Price</dt>
-          <dd>Ksh {parcel.price}</dd>
+          <dt className="font-mono text-xs uppercase tracking-wider text-fog">Price</dt>
+          <dd className="mt-0.5 text-sm font-medium text-ink">Ksh {parcel.price}</dd>
         </div>
         <div>
-          <dt>Date created</dt>
-          <dd>{formatDate(parcel.dateCreated)}</dd>
+          <dt className="font-mono text-xs uppercase tracking-wider text-fog">Date created</dt>
+          <dd className="mt-0.5 text-sm font-medium text-ink">{formatDate(parcel.dateCreated)}</dd>
         </div>
       </dl>
 
-      <div className="parcel-details__actions">
+      <div className="flex flex-col gap-4 border-t border-slate-200 pt-5">
         <ChangeDestinationForm parcel={parcel} currentUserId={currentUser.id} />
         <CancelDeliveryButton parcel={parcel} currentUserId={currentUser.id} />
       </div>
