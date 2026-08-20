@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { changeDestination, PARCEL_STATUS } from '../features/parcels/parcelsSlice'
+import { changeDestination, PARCEL_STATUS } from '../../features/parcels/parcelsSlice'
 
 export default function ChangeDestinationForm({ parcel, currentUserId }) {
   const dispatch = useDispatch()
@@ -9,7 +9,7 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
   const [blockedMessage, setBlockedMessage] = useState('')
   const [validationError, setValidationError] = useState('')
 
-  const isOwner = parcel.createdBy === currentUserId
+  const isOwner = parcel.ownerId === currentUserId
   const isDelivered = parcel.status === PARCEL_STATUS.DELIVERED
 
   if (!isOwner) return null

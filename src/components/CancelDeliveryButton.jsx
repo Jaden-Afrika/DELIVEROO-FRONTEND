@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { cancelParcel, PARCEL_STATUS } from '../features/parcels/parcelsSlice'
+import { cancelParcel, PARCEL_STATUS } from '../../features/parcels/parcelsSlice'
 import ConfirmModal from './ConfirmModal'
 
 export default function CancelDeliveryButton({ parcel, currentUserId }) {
@@ -8,7 +8,7 @@ export default function CancelDeliveryButton({ parcel, currentUserId }) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [blockedMessage, setBlockedMessage] = useState('')
 
-  const isOwner = parcel.createdBy === currentUserId
+  const isOwner = parcel.ownerId === currentUserId
   const isDelivered = parcel.status === PARCEL_STATUS.DELIVERED
 
   // Not the creator: don't show the control at all — it's not their

@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { selectAllParcels } from '../features/parcels/parcelsSlice'
+import { selectAllParcels } from '../../features/parcels/parcelsSlice'
 import StatusBadge from '../components/StatusBadge'
 
 // Placeholder for the full Order List page — already reads real data

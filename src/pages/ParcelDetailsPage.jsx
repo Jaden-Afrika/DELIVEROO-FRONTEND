@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { selectParcelById } from '../features/parcels/parcelsSlice'
+import { selectParcelById } from '../../features/parcels/parcelsSlice'
+import { WEIGHT_CATEGORIES } from '../../features/parcels/parcelsAPI'
 import StatusBadge from '../components/StatusBadge'
 import CancelDeliveryButton from '../components/CancelDeliveryButton'
 import ChangeDestinationForm from '../components/ChangeDestinationForm'
@@ -12,6 +13,11 @@ function formatDate(isoString) {
     month: 'short',
     day: 'numeric',
   })
+}
+
+function weightLabel(weightCategory) {
+  const match = WEIGHT_CATEGORIES.find((w) => w.value === weightCategory)
+  return match ? match.label : weightCategory
 }
 
 export default function ParcelDetailsPage() {
@@ -59,7 +65,7 @@ export default function ParcelDetailsPage() {
         </div>
         <div>
           <dt className="font-mono text-xs uppercase tracking-wider text-fog">Weight</dt>
-          <dd className="mt-0.5 text-sm font-medium text-ink">{parcel.weight}</dd>
+          <dd className="mt-0.5 text-sm font-medium text-ink">{weightLabel(parcel.weightCategory)}</dd>
         </div>
         <div>
           <dt className="font-mono text-xs uppercase tracking-wider text-fog">Price</dt>
@@ -67,7 +73,7 @@ export default function ParcelDetailsPage() {
         </div>
         <div>
           <dt className="font-mono text-xs uppercase tracking-wider text-fog">Date created</dt>
-          <dd className="mt-0.5 text-sm font-medium text-ink">{formatDate(parcel.dateCreated)}</dd>
+          <dd className="mt-0.5 text-sm font-medium text-ink">{formatDate(parcel.createdAt)}</dd>
         </div>
       </dl>
 
