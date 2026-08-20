@@ -44,7 +44,7 @@ export default function ParcelDetailsPage() {
         <span>Map goes here (pickup + destination markers, route line)</span>
       </div>
 
-      <dl className="mb-6 grid grid-cols-2 gap-4">
+      <dl className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <dt className="font-mono text-xs uppercase tracking-wider text-fog">Pickup location</dt>
           <dd className="mt-0.5 text-sm font-medium text-ink">{parcel.pickupLocation}</dd>
