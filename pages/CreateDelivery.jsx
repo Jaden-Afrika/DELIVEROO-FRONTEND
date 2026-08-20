@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { submitParcel, resetCreateStatus } from "../features/parcels/parcelsSlice";
 import { WEIGHT_CATEGORIES, estimatePrice } from "../features/parcels/parcelsAPI";
+import RouteMap from "../../kesh/components/RouteMap";
 
 export default function CreateDelivery() {
   const dispatch = useDispatch();
@@ -14,6 +15,8 @@ export default function CreateDelivery() {
     destination: "",
     weightCategory: "",
   });
+  const [distanceKm, setDistanceKm] = useState(0);
+  const [durationText, setDurationText] = useState(null);
   const [touched, setTouched] = useState({});
 
   const errors = {
@@ -22,7 +25,7 @@ export default function CreateDelivery() {
     weightCategory: !form.weightCategory ? "Choose a weight category." : "",
   };
   const isValid = !errors.pickupLocation && !errors.destination && !errors.weightCategory;
-  const price = form.weightCategory ? estimatePrice(form.weightCategory) : null;
+  const price = form.weightCategory ? estimatePrice(form.weightCategory, distanceKm) : null;
 
   useEffect(() => {
     if (createStatus === "succeeded" && lastCreatedId) {
@@ -40,21 +43,26 @@ export default function CreateDelivery() {
     setTouched((t) => ({ ...t, [e.target.name]: true }));
   }
 
+  function handleRouteCalculated({ distanceKm: km, durationText: duration }) {
+    setDistanceKm(km);
+    setDurationText(duration);
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
     setTouched({ pickupLocation: true, destination: true, weightCategory: true });
     if (!isValid) return;
-    dispatch(submitParcel(form));
+    dispatch(submitParcel({ ...form, distanceKm, estimatedPrice: price }));
   }
 
   return (
     <div className="max-w-xl mx-auto px-4 py-10">
       <div className="mb-8">
-        <p className="text-xs font-semibold tracking-widest text-amber-600 uppercase mb-1">
+        <p className="font-mono text-xs font-medium tracking-widest text-amber-500 uppercase mb-1">
           New delivery
         </p>
-        <h1 className="text-2xl font-bold text-slate-900">Send a parcel</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="font-display text-2xl font-bold text-ink">Send a parcel</h1>
+        <p className="text-sm text-fog mt-1">
           Tell us where it's coming from, where it's going, and how heavy it is.
         </p>
       </div>
@@ -98,6 +106,12 @@ export default function CreateDelivery() {
           )}
         </div>
 
+        <RouteMap
+          pickup={form.pickupLocation}
+          destination={form.destination}
+          onRouteCalculated={handleRouteCalculated}
+        />
+
         <div>
           <label htmlFor="weightCategory" className="block text-sm font-medium text-slate-700 mb-1">
             Weight category
@@ -122,11 +136,18 @@ export default function CreateDelivery() {
           )}
         </div>
 
-        <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 px-4 py-3">
-          <span className="text-sm text-slate-600">Estimated price</span>
-          <span className="text-lg font-semibold text-slate-900">
-            {price !== null ? `KSh ${price.toLocaleString()}` : "—"}
-          </span>
+        <div className="rounded-lg bg-paper border border-slate-200 px-4 py-3 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-fog">Estimated price</span>
+            <span className="text-lg font-display font-semibold text-ink">
+              {price !== null ? `KSh ${price.toLocaleString()}` : "—"}
+            </span>
+          </div>
+          {durationText && distanceKm > 0 && (
+            <p className="text-xs font-mono text-fog">
+              {distanceKm.toFixed(1)} km · {durationText} drive
+            </p>
+          )}
         </div>
 
         {createStatus === "failed" && createError && (
