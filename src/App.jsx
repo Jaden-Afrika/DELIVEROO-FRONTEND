@@ -1,18 +1,33 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import OrdersPage from './pages/OrdersPage'
 import ParcelDetailsPage from './pages/ParcelDetailsPage'
-import AdminPage from './pages/AdminPage'
+import AdminPanel from './pages/AdminPanel'
+import CreateDelivery from '../pages/CreateDelivery'
+import MyParcels from '../pages/MyParcels'
+import Login from './pages/auth/Login'
+import SignUp from './pages/auth/SignUp'
+import AppShell from './components/AppShell'
+import RequireAuth from './components/RequireAuth'
+import RequireAdmin from './components/RequireAdmin'
 
-// Scoped to the "Parcel Details & Changes" feature only. Login/signup
-// routes and route protection belong to the teammate building
-// "Login & Accounts"; /admin access control belongs to theirs too.
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<OrdersPage />} />
-      <Route path="/orders" element={<OrdersPage />} />
-      <Route path="/orders/:id" element={<ParcelDetailsPage />} />
-      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route element={<RequireAuth />}>
+        <Route element={<AppShell />}>
+          <Route path="/" element={<Navigate to="/orders" replace />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:id" element={<ParcelDetailsPage />} />
+          <Route path="/parcels" element={<MyParcels />} />
+          <Route path="/parcels/new" element={<CreateDelivery />} />
+          <Route path="/parcels/:id" element={<ParcelDetailsPage />} />
+          <Route element={<RequireAdmin />}>
+            <Route path="/admin" element={<AdminPanel />} />
+          </Route>
+        </Route>
+      </Route>
       <Route path="*" element={<Navigate to="/orders" replace />} />
     </Routes>
   )

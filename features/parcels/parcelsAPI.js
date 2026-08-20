@@ -3,7 +3,7 @@
 // Assumes a shared axios instance from the project's shared api/client.js
 // (attaches the auth token via an interceptor). Not included in this
 // folder since it's shared scaffolding — see the full project repo.
-import apiClient from "../../api/client";
+import apiClient from "../../src/api/client";
 
 /**
  * Weight category -> pricing.

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { submitParcel, resetCreateStatus } from "../features/parcels/parcelsSlice";
 import { WEIGHT_CATEGORIES, estimatePrice } from "../features/parcels/parcelsAPI";
-import RouteMap from "../../kesh/components/RouteMap";
+import RouteMap from "../src/components/RouteMap";
 
 export default function CreateDelivery() {
   const dispatch = useDispatch();

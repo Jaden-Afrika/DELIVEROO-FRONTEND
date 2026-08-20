@@ -1,10 +1,10 @@
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { selectParcelById } from '../features/parcels/parcelsSlice'
+import { selectParcelForUser } from '../features/parcels/parcelsSlice'
 import StatusBadge from '../components/StatusBadge'
 import CancelDeliveryButton from '../components/CancelDeliveryButton'
 import ChangeDestinationForm from '../components/ChangeDestinationForm'
-import useAuth from '../hooks/useAuth'
+import RouteMap from '../components/RouteMap'
 import './ParcelDetailsPage.css'
 
 function formatDate(isoString) {
@@ -17,59 +17,28 @@ function formatDate(isoString) {
 
 export default function ParcelDetailsPage() {
   const { id } = useParams()
-  const parcel = useSelector((state) => selectParcelById(state, id))
-  const { currentUser } = useAuth()
+  const currentUser = useSelector((state) => state.auth.user)
+  const parcel = useSelector((state) => selectParcelForUser(state, id, currentUser))
 
   if (!parcel) {
     return <p className="parcel-details__empty">Parcel not found.</p>
   }
 
   return (
-    <div className="parcel-details">
-      <header className="parcel-details__header">
-        <h2>Parcel details</h2>
+    <div className="mx-auto max-w-4xl px-5 py-10 sm:px-8">
+      <header className="flex items-end justify-between gap-4">
+        <div><p className="font-mono text-xs uppercase tracking-widest text-amber">Delivery detail</p><h1 className="mt-3 font-display text-3xl font-bold text-ink">Parcel {parcel.id}</h1></div>
         <StatusBadge status={parcel.status} />
       </header>
-
-      {/*
-        MAP SLOT — Kesh's Google Map (markers + route line + distance/duration)
-        goes here. Pass parcel.pickupLocation / parcel.destination /
-        parcel.currentLocation as props once the map component exists.
-      */}
-      <div className="parcel-details__map-slot">
-        <span>Map goes here (pickup + destination markers, route line)</span>
+      <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
+        <RouteMap pickup={parcel.pickupLocation} destination={parcel.destination} />
+        <dl className="grid grid-cols-2 gap-4 border border-slate-200 bg-white p-5">
+          {[['Pickup', parcel.pickupLocation], ['Destination', parcel.destination], ['Current location', parcel.currentLocation], ['Weight', parcel.weight], ['Price', `KSh ${parcel.price}`], ['Created', formatDate(parcel.dateCreated)]].map(([label, value]) => <div key={label}><dt className="font-mono text-[11px] uppercase tracking-wide text-fog">{label}</dt><dd className="mt-1 text-sm font-medium text-ink">{value}</dd></div>)}
+        </dl>
       </div>
-
-      <dl className="parcel-details__info">
-        <div>
-          <dt>Pickup location</dt>
-          <dd>{parcel.pickupLocation}</dd>
-        </div>
-        <div>
-          <dt>Destination</dt>
-          <dd>{parcel.destination}</dd>
-        </div>
-        <div>
-          <dt>Current location</dt>
-          <dd>{parcel.currentLocation}</dd>
-        </div>
-        <div>
-          <dt>Weight</dt>
-          <dd>{parcel.weight}</dd>
-        </div>
-        <div>
-          <dt>Price</dt>
-          <dd>Ksh {parcel.price}</dd>
-        </div>
-        <div>
-          <dt>Date created</dt>
-          <dd>{formatDate(parcel.dateCreated)}</dd>
-        </div>
-      </dl>
-
-      <div className="parcel-details__actions">
-        <ChangeDestinationForm parcel={parcel} currentUserId={currentUser.id} />
-        <CancelDeliveryButton parcel={parcel} currentUserId={currentUser.id} />
+      <div className="mt-6 flex flex-col gap-4 border-t border-slate-200 pt-6">
+        <ChangeDestinationForm parcel={parcel} currentUserId={currentUser?.id} />
+        <CancelDeliveryButton parcel={parcel} currentUserId={currentUser?.id} />
       </div>
     </div>
   )
