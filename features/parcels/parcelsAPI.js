@@ -6,20 +6,29 @@
 import apiClient from "../../api/client";
 
 /**
- * Weight category -> flat quote pricing.
+ * Weight category -> pricing.
+ * baseFee: flat fee just for that weight bracket (covers handling, min charge).
+ * perKmRate: added on top for every km of distance between pickup and destination.
  * This is only used for the live "estimated price" shown on the form
  * before submit. The backend should be the source of truth for the
  * final price returned on the created parcel.
  */
 export const WEIGHT_CATEGORIES = [
-  { value: "light", label: "Light (0 - 2kg)", basePrice: 300 },
-  { value: "medium", label: "Medium (2 - 10kg)", basePrice: 700 },
-  { value: "heavy", label: "Heavy (10kg+)", basePrice: 1500 },
+  { value: "light", label: "Light (0 - 2kg)", baseFee: 150, perKmRate: 15 },
+  { value: "medium", label: "Medium (2 - 10kg)", baseFee: 350, perKmRate: 25 },
+  { value: "heavy", label: "Heavy (10kg+)", baseFee: 700, perKmRate: 40 },
 ];
 
-export function estimatePrice(weightCategory) {
+/**
+ * Estimate price from weight category + distance in km.
+ * distanceKm defaults to 0 so the form can still show a base price
+ * before the map has calculated a route.
+ */
+export function estimatePrice(weightCategory, distanceKm = 0) {
   const match = WEIGHT_CATEGORIES.find((w) => w.value === weightCategory);
-  return match ? match.basePrice : 0;
+  if (!match) return 0;
+  const distancePortion = Math.max(distanceKm, 0) * match.perKmRate;
+  return Math.round(match.baseFee + distancePortion);
 }
 
 /**
