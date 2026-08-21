@@ -1,10 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { login, signup } from '../../api/auth'
+import { login, logout as endSession, signup } from '../../api/auth'
 
 const storedUser = JSON.parse(localStorage.getItem('parcelpilot-user') || 'null')
 
 export const loginUser = createAsyncThunk('auth/login', login)
 export const signupUser = createAsyncThunk('auth/signup', signup)
+export const logoutUser = createAsyncThunk('auth/logout', endSession)
 
 const authSlice = createSlice({
   name: 'auth',
@@ -31,6 +32,8 @@ const authSlice = createSlice({
       .addCase(signupUser.fulfilled, setSession)
       .addCase(loginUser.rejected, setError)
       .addCase(signupUser.rejected, setError)
+      .addCase(logoutUser.fulfilled, clearSession)
+      .addCase(logoutUser.rejected, clearSession)
   },
 })
 
@@ -50,6 +53,14 @@ function setSession(state, action) {
 function setError(state, action) {
   state.status = 'failed'
   state.error = action.error.message
+}
+
+function clearSession(state) {
+  state.user = null
+  state.token = null
+  state.status = 'idle'
+  localStorage.removeItem('parcelpilot-user')
+  localStorage.removeItem('parcelpilot-token')
 }
 
 export const { logout } = authSlice.actions
