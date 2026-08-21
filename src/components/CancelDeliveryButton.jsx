@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { cancelParcel, PARCEL_STATUS } from '../features/parcels/parcelsSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { cancelOrder, PARCEL_STATUS } from '../features/parcels/parcelsSlice'
 import ConfirmModal from './ConfirmModal'
 
 export default function CancelDeliveryButton({ parcel, currentUserId, userRole }) {
@@ -8,8 +8,9 @@ export default function CancelDeliveryButton({ parcel, currentUserId, userRole }
   const [showConfirm, setShowConfirm] = useState(false)
   const [blockedMessage, setBlockedMessage] = useState('')
 
-  const isOwner = parcel.createdBy === currentUserId
+  const isOwner = String(parcel.ownerId) === String(currentUserId)
   const isDelivered = parcel.status === PARCEL_STATUS.DELIVERED
+  const cancellingId = useSelector((state) => state.parcels.cancellingId)
 
   // Not the creator: don't show the control at all — it's not their
   // parcel to cancel, so there's nothing to explain.
@@ -25,7 +26,7 @@ export default function CancelDeliveryButton({ parcel, currentUserId, userRole }
   }
 
   function handleConfirm() {
-    dispatch(cancelParcel(parcel.id))
+    dispatch(cancelOrder(parcel.id))
     setShowConfirm(false)
   }
 
@@ -35,10 +36,10 @@ export default function CancelDeliveryButton({ parcel, currentUserId, userRole }
         type="button"
         className="rounded-lg border border-caution bg-paper px-4 py-2.5 text-sm font-semibold text-caution disabled:cursor-not-allowed disabled:opacity-50"
         onClick={handleClick}
-        disabled={isDelivered}
+        disabled={isDelivered || parcel.status === PARCEL_STATUS.CANCELLED || String(cancellingId) === String(parcel.id)}
         aria-disabled={isDelivered}
       >
-        Cancel order
+        {String(cancellingId) === String(parcel.id) ? 'Cancelling...' : 'Cancel order'}
       </button>
 
       {blockedMessage && <p className="mt-2 text-sm text-caution">{blockedMessage}</p>}

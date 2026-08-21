@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { createParcel } from "../src/features/parcels/parcelsSlice";
+import { submitParcel } from "../src/features/parcels/parcelsSlice";
 import { WEIGHT_CATEGORIES, estimatePrice } from "../features/parcels/parcelsAPI";
 import RouteMap from "../src/components/RouteMap";
 
 export default function CreateDelivery() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const user = useSelector((s) => s.auth.user);
+  const { createStatus, createError } = useSelector((s) => s.parcels);
 
   const [form, setForm] = useState({
     pickupLocation: "",
@@ -41,18 +41,17 @@ export default function CreateDelivery() {
     setDurationText(duration);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setTouched({ pickupLocation: true, destination: true, weightCategory: true });
     if (!isValid) return;
-    dispatch(createParcel({
+    const result = await dispatch(submitParcel({
       pickupLocation: form.pickupLocation,
       destination: form.destination,
-      weight: form.weightCategory,
-      price,
-      createdBy: user?.id,
+      weightCategory: form.weightCategory,
+      distanceKm,
     }));
-    navigate("/parcels");
+    if (submitParcel.fulfilled.match(result)) navigate("/parcels");
   }
 
   return (
@@ -150,11 +149,13 @@ export default function CreateDelivery() {
           )}
         </div>
 
+        {createStatus === 'failed' && <p className="rounded-lg border border-caution/30 bg-caution/10 px-3 py-2 text-sm text-caution">{createError}</p>}
         <button
           type="submit"
+          disabled={createStatus === 'loading'}
           className="w-full rounded-lg bg-ink py-2.5 text-sm font-semibold text-paper transition hover:ring-2 hover:ring-amber"
         >
-          Submit delivery
+          {createStatus === 'loading' ? 'Submitting...' : 'Submit delivery'}
         </button>
       </form>
     </div>

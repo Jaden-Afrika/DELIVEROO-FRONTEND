@@ -135,6 +135,21 @@ def get_parcel(parcel_id: int):
     return jsonify(parcel_data(parcel))
 
 
+@api.patch("/parcels/<int:parcel_id>/cancel")
+@require_auth
+def cancel_parcel(parcel_id: int):
+    parcel = db.session.get(Parcel, parcel_id)
+    if parcel is None:
+        return jsonify(message="Parcel not found."), 404
+    if parcel.owner_id != g.current_user.id:
+        return jsonify(message="You do not have access to this parcel."), 403
+    if parcel.status == "delivered":
+        return jsonify(message="Completed orders cannot be cancelled."), 400
+    parcel.status = "cancelled"
+    db.session.commit()
+    return jsonify(parcel_data(parcel))
+
+
 @api.get("/admin/parcels")
 @require_admin
 def all_parcels():

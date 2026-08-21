@@ -8,7 +8,7 @@ from .database import db
 
 USER_ROLES = ("user", "admin")
 WEIGHT_CATEGORIES = ("light", "medium", "heavy")
-PARCEL_STATUSES = ("pending", "in_transit", "delivered")
+PARCEL_STATUSES = ("pending", "in_transit", "delivered", "cancelled")
 
 
 class User(db.Model):
