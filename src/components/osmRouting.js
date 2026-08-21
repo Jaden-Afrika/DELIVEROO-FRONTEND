@@ -4,7 +4,7 @@ const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving'
 const USER_AGENT = 'Deliveroo-School-Project'
 
 export async function geocodeAddress(address) {
-  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(address)}&format=json&limit=1`
+  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=ke`
   const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } })
   if (!response.ok) throw new Error('Geocoding request failed.')
   const results = await response.json()
