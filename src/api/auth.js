@@ -1,7 +1,9 @@
 import client from './client'
 
 function apiError(error) {
-  throw new Error(error.response?.data?.message || 'Unable to complete this request.')
+  // The live API returns error bodies as { "error": "..." } (not { "message": "..." }),
+  // so read both keys; otherwise every failure shows the generic fallback message.
+  throw new Error(error.response?.data?.message || error.response?.data?.error || 'Unable to complete this request.')
 }
 
 export async function login(credentials) {
