@@ -9,6 +9,7 @@ import SignUp from './pages/auth/SignUp'
 import AppShell from './components/AppShell'
 import RequireAuth from './components/RequireAuth'
 import RequireAdmin from './components/RequireAdmin'
+import RequireUser from './components/RequireUser'
 
 export default function App() {
   return (
@@ -20,9 +21,11 @@ export default function App() {
           <Route path="/" element={<Navigate to="/orders" replace />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:id" element={<ParcelDetailsPage />} />
-          <Route path="/parcels" element={<MyParcels />} />
-          <Route path="/parcels/new" element={<CreateDelivery />} />
-          <Route path="/parcels/:id" element={<ParcelDetailsPage />} />
+          <Route element={<RequireUser />}>
+            <Route path="/parcels" element={<MyParcels />} />
+            <Route path="/parcels/new" element={<CreateDelivery />} />
+            <Route path="/parcels/:id" element={<ParcelDetailsPage />} />
+          </Route>
           <Route element={<RequireAdmin />}>
             <Route path="/admin" element={<AdminPanel />} />
           </Route>

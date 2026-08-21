@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { loadAllParcels, changeParcelStatus, changeParcelLocation } from '../features/admin/adminSlice'
 
-const STATUS_OPTIONS = [['pending', 'Pending'], ['in_transit', 'In transit'], ['delivered', 'Delivered']]
+const STATUS_OPTIONS = [['pending', 'Pending'], ['in_transit', 'In transit'], ['delivered', 'Completed']]
 const STATUS_STYLES = { pending: 'bg-amber/15 text-amber-600', in_transit: 'bg-route/10 text-route', delivered: 'bg-depot/10 text-depot' }
 
 function LocationEditor({ parcel, onSave, saving }) {

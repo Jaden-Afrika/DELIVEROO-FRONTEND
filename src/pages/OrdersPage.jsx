@@ -17,9 +17,9 @@ export default function OrdersPage() {
           <h1 className="mt-3 font-display text-3xl font-bold text-ink">{user?.role === 'admin' ? 'All orders' : 'Your orders'}</h1>
           <p className="mt-2 text-sm text-fog">Track every hand-off from pickup to delivery.</p>
         </div>
-        <Link to="/parcels/new" className="inline-flex w-fit rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-paper hover:ring-2 hover:ring-amber">Make a parcel</Link>
+        {user?.role === 'user' && <Link to="/parcels/new" className="inline-flex w-fit rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-paper hover:ring-2 hover:ring-amber">Make a parcel</Link>}
       </div>
-      {parcels.length === 0 && <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No orders yet</p><p className="mt-2 text-sm text-fog">Create your first parcel to start tracking a delivery.</p></div>}
+      {parcels.length === 0 && <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No orders yet</p><p className="mt-2 text-sm text-fog">{user?.role === 'admin' ? 'Completed and active orders will appear in the admin workspace.' : 'Create your first parcel to start tracking a delivery.'}</p></div>}
       <ul className="mt-8 grid gap-3 lg:grid-cols-2">
         {parcels.map((parcel) => (
           <li key={parcel.id}>

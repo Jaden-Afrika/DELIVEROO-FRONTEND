@@ -7,7 +7,7 @@ const client = axios.create({
 })
 
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('parcelpilot-token')
+  const token = localStorage.getItem('deliveroo-token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })

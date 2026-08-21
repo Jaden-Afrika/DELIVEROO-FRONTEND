@@ -1,7 +1,7 @@
 const STATUS_LABEL = {
   pending: 'Pending',
   in_transit: 'In transit',
-  delivered: 'Delivered',
+  delivered: 'Completed',
   cancelled: 'Cancelled',
 }
 

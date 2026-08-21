@@ -1,4 +1,4 @@
-"""PostgreSQL schema models for ParcelPilot deliveries."""
+"""PostgreSQL schema models for Deliveroo deliveries."""
 
 from sqlalchemy import CheckConstraint, Enum, ForeignKey, Numeric, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship

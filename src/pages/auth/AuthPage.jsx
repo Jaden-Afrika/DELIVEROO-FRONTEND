@@ -39,7 +39,7 @@ export default function AuthPage({ mode }) {
         <section className="order-2 flex items-center p-6 sm:p-12 lg:order-1">
           <div className="mx-auto w-full max-w-sm">
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-amber">{isSignup ? 'Start dispatching' : 'Welcome back'}</p>
-            <h1 className="mt-4 font-display text-4xl font-bold leading-tight text-ink">{isSignup ? 'Create your account' : 'Log in to ParcelPilot'}</h1>
+            <h1 className="mt-4 font-display text-4xl font-bold leading-tight text-ink">{isSignup ? 'Create your account' : 'Log in to Deliveroo'}</h1>
             <form className="mt-8 space-y-4" onSubmit={submit}>
               {isSignup && <label className="block text-sm font-medium text-ink">Full name<input className={inputClass} name="name" value={form.name} onChange={update} required /></label>}
               <label className="block text-sm font-medium text-ink">Email address<input className={inputClass} name="email" type="email" value={form.email} onChange={update} required /></label>
@@ -55,7 +55,7 @@ export default function AuthPage({ mode }) {
           <img className="h-full w-full object-cover" src={deliveryImage} alt="Delivery parcel ready for dispatch" />
           <div className="absolute inset-0 bg-ink/35" />
           <div className="absolute inset-x-0 top-0 p-8 text-paper sm:p-10">
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-amber">ParcelPilot</p>
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-amber">Deliveroo</p>
             <p className="mt-3 max-w-sm font-display text-3xl font-bold leading-tight">Every parcel, on the right route.</p>
             <p className="mt-3 max-w-sm text-sm leading-6 text-paper/90">A practical workspace for dispatching deliveries and keeping every hand-off visible.</p>
           </div>

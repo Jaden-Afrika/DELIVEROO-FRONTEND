@@ -37,7 +37,7 @@ export default function ParcelDetailsPage() {
       </div>
       <div className="mt-6 flex flex-col gap-4 border-t border-slate-200 pt-6">
         <ChangeDestinationForm parcel={parcel} currentUserId={currentUser?.id} />
-        <CancelDeliveryButton parcel={parcel} currentUserId={currentUser?.id} />
+        <CancelDeliveryButton parcel={parcel} currentUserId={currentUser?.id} userRole={currentUser?.role} />
       </div>
     </div>
   )

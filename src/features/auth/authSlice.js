@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { login, logout as endSession, signup } from '../../api/auth'
 
-const storedUser = JSON.parse(localStorage.getItem('parcelpilot-user') || 'null')
+const storedUser = JSON.parse(localStorage.getItem('deliveroo-user') || 'null')
 
 export const loginUser = createAsyncThunk('auth/login', login)
 export const signupUser = createAsyncThunk('auth/signup', signup)
@@ -11,7 +11,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user: storedUser,
-    token: localStorage.getItem('parcelpilot-token'),
+    token: localStorage.getItem('deliveroo-token'),
     status: 'idle',
     error: null,
   },
@@ -20,8 +20,8 @@ const authSlice = createSlice({
       state.user = null
       state.token = null
       state.status = 'idle'
-      localStorage.removeItem('parcelpilot-user')
-      localStorage.removeItem('parcelpilot-token')
+      localStorage.removeItem('deliveroo-user')
+      localStorage.removeItem('deliveroo-token')
     },
     // Clears a stale failed status/error so /login and /signup each
     // start fresh instead of showing the previous page's error.
@@ -54,8 +54,8 @@ function setSession(state, action) {
   // so the session token is no longer stored as undefined.
   state.token = action.payload.token ?? action.payload.access_token
   state.status = 'succeeded'
-  localStorage.setItem('parcelpilot-user', JSON.stringify(state.user))
-  localStorage.setItem('parcelpilot-token', state.token)
+  localStorage.setItem('deliveroo-user', JSON.stringify(state.user))
+  localStorage.setItem('deliveroo-token', state.token)
 }
 
 function setError(state, action) {
@@ -67,8 +67,8 @@ function clearSession(state) {
   state.user = null
   state.token = null
   state.status = 'idle'
-  localStorage.removeItem('parcelpilot-user')
-  localStorage.removeItem('parcelpilot-token')
+  localStorage.removeItem('deliveroo-user')
+  localStorage.removeItem('deliveroo-token')
 }
 
 export const { logout, clearAuthError } = authSlice.actions

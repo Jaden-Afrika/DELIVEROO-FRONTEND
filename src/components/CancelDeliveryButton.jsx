@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { cancelParcel, PARCEL_STATUS } from '../features/parcels/parcelsSlice'
 import ConfirmModal from './ConfirmModal'
 
-export default function CancelDeliveryButton({ parcel, currentUserId }) {
+export default function CancelDeliveryButton({ parcel, currentUserId, userRole }) {
   const dispatch = useDispatch()
   const [showConfirm, setShowConfirm] = useState(false)
   const [blockedMessage, setBlockedMessage] = useState('')
@@ -13,7 +13,7 @@ export default function CancelDeliveryButton({ parcel, currentUserId }) {
 
   // Not the creator: don't show the control at all — it's not their
   // parcel to cancel, so there's nothing to explain.
-  if (!isOwner) return null
+  if (userRole !== 'user' || !isOwner) return null
 
   function handleClick() {
     if (isDelivered) {
@@ -38,7 +38,7 @@ export default function CancelDeliveryButton({ parcel, currentUserId }) {
         disabled={isDelivered}
         aria-disabled={isDelivered}
       >
-        Cancel delivery
+        Cancel order
       </button>
 
       {blockedMessage && <p className="mt-2 text-sm text-caution">{blockedMessage}</p>}
