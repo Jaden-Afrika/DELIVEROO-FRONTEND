@@ -12,6 +12,7 @@
   },
   "jest": {
     "testEnvironment": "jsdom",
+    "setupFiles": ["<rootDir>/src/test/setup.js"],
     "setupFilesAfterEnv": ["@testing-library/jest-dom"],
     "moduleNameMapper": {
       "\\.(css)$": "<rootDir>/src/test/styleMock.js"

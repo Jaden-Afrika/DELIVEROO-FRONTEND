@@ -2,7 +2,7 @@
 
 import os
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -32,6 +32,14 @@ def create_app() -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     CORS(app, resources={r"/*": {"origins": os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173")}})
+
+    @app.errorhandler(Exception)
+    def handle_unexpected_error(exc):
+        # Log details server-side only; clients get a generic JSON body so
+        # stack traces or database details are never exposed.
+        db.session.rollback()
+        app.logger.exception("Unhandled server error")
+        return jsonify(error="Something went wrong on our side. Please try again."), 500
 
     # Import models after db is configured so Alembic discovers their metadata.
     from . import models  # noqa: F401
