@@ -1,22 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Inter', sans-serif;
-  color: #14213D;
-  background: #F8F7F4;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
-body { margin: 0; }
+body { @apply m-0 bg-paper font-sans text-ink; }
 #root { min-height: 100svh; }
-
-.orders-page,
-.admin-page { max-width: 760px; margin: 0 auto; padding: 40px 20px; text-align: left; }
-.orders-list { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.orders-list a { display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid #E2E8F0; padding: 14px 16px; text-decoration: none; color: #14213D; font-size: 14px; font-weight: 500; background: #FFFFFF; }
-.orders-list a:hover { border-color: #64748B; }

@@ -1,5 +1,3 @@
-import './StatusBadge.css'
-
 const STATUS_LABEL = {
   pending: 'Pending',
   in_transit: 'In transit',
@@ -7,8 +5,13 @@ const STATUS_LABEL = {
   cancelled: 'Cancelled',
 }
 
-// className suffix must match a .badge--{status} rule in StatusBadge.css
 export default function StatusBadge({ status }) {
   const label = STATUS_LABEL[status] ?? status
-  return <span className={`badge badge--${status}`}>{label}</span>
+  const style = {
+    pending: 'bg-amber/15 text-amber-600',
+    in_transit: 'bg-route/10 text-route',
+    delivered: 'bg-depot/10 text-depot',
+    cancelled: 'bg-caution/10 text-caution',
+  }[status] || 'bg-paper text-fog'
+  return <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${style}`}>{label}</span>
 }

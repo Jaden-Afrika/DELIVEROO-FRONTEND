@@ -3,10 +3,10 @@ import StatusBadge from './StatusBadge'
 
 describe('StatusBadge', () => {
   it.each([
-    ['pending', 'Pending', 'badge--pending'],
-    ['in_transit', 'In transit', 'badge--in_transit'],
-    ['delivered', 'Delivered', 'badge--delivered'],
-    ['cancelled', 'Cancelled', 'badge--cancelled'],
+    ['pending', 'Pending', 'text-amber-600'],
+    ['in_transit', 'In transit', 'text-route'],
+    ['delivered', 'Delivered', 'text-depot'],
+    ['cancelled', 'Cancelled', 'text-caution'],
   ])('renders %s with the %s label', (status, label, className) => {
     render(<StatusBadge status={status} />)
     const badge = screen.getByText(label)

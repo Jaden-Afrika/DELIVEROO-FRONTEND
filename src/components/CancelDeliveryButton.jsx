@@ -30,10 +30,10 @@ export default function CancelDeliveryButton({ parcel, currentUserId }) {
   }
 
   return (
-    <div className="cancel-delivery">
+    <div>
       <button
         type="button"
-        className="btn btn--danger-outline"
+        className="rounded-lg border border-caution bg-paper px-4 py-2.5 text-sm font-semibold text-caution disabled:cursor-not-allowed disabled:opacity-50"
         onClick={handleClick}
         disabled={isDelivered}
         aria-disabled={isDelivered}
@@ -41,7 +41,7 @@ export default function CancelDeliveryButton({ parcel, currentUserId }) {
         Cancel delivery
       </button>
 
-      {blockedMessage && <p className="field-message field-message--error">{blockedMessage}</p>}
+      {blockedMessage && <p className="mt-2 text-sm text-caution">{blockedMessage}</p>}
 
       {showConfirm && (
         <ConfirmModal
