@@ -49,33 +49,33 @@ def json_body() -> dict | None:
 def signup():
     body = json_body()
     if body is None:
-        return jsonify(message="A JSON request body is required."), 400
+        return jsonify(error="A JSON request body is required."), 400
     name = str(body.get("name", "")).strip()
     email = str(body.get("email", "")).strip().lower()
     password = body.get("password", "")
     if not name or not email or not isinstance(password, str):
-        return jsonify(message="Name, email, and password are required."), 400
+        return jsonify(error="Name, email, and password are required."), 400
     if len(password) < 8:
-        return jsonify(message="Password must contain at least 8 characters."), 400
+        return jsonify(error="Password must contain at least 8 characters."), 400
     if db.session.scalar(select(User).where(User.email == email)):
-        return jsonify(message="An account with this email already exists."), 409
+        return jsonify(error="An account with this email already exists."), 409
     user = User(name=name, email=email, password_hash=generate_password_hash(password))
     db.session.add(user)
     db.session.commit()
-    return jsonify(user=user_data(user), token=create_token(user)), 201
+    return jsonify(user=user_data(user), access_token=create_token(user)), 201
 
 
 @api.post("/auth/login")
 def login():
     body = json_body()
     if body is None:
-        return jsonify(message="A JSON request body is required."), 400
+        return jsonify(error="A JSON request body is required."), 400
     email = str(body.get("email", "")).strip().lower()
     password = body.get("password", "")
     user = db.session.scalar(select(User).where(User.email == email))
     if user is None or not isinstance(password, str) or not check_password_hash(user.password_hash, password):
-        return jsonify(message="Invalid email or password."), 401
-    return jsonify(user=user_data(user), token=create_token(user))
+        return jsonify(error="Invalid email or password."), 401
+    return jsonify(user=user_data(user), access_token=create_token(user))
 
 
 @api.post("/auth/logout")
@@ -90,18 +90,18 @@ def logout():
 def create_parcel():
     body = json_body()
     if body is None:
-        return jsonify(message="A JSON request body is required."), 400
+        return jsonify(error="A JSON request body is required."), 400
     pickup = str(body.get("pickupLocation", "")).strip()
     destination = str(body.get("destination", "")).strip()
     category = body.get("weightCategory")
     if not pickup or not destination or category not in WEIGHT_CATEGORIES:
-        return jsonify(message="Pickup location, destination, and a valid weight category are required."), 400
+        return jsonify(error="Pickup location, destination, and a valid weight category are required."), 400
     try:
         distance = Decimal(str(body.get("distanceKm", 0)))
     except (InvalidOperation, TypeError, ValueError):
-        return jsonify(message="Distance must be a non-negative number."), 400
+        return jsonify(error="Distance must be a non-negative number."), 400
     if distance < 0:
-        return jsonify(message="Distance must be a non-negative number."), 400
+        return jsonify(error="Distance must be a non-negative number."), 400
     base_fee, per_km = WEIGHT_PRICING[category]
     parcel = Parcel(
         pickup_location=pickup,
@@ -129,9 +129,9 @@ def my_parcels():
 def get_parcel(parcel_id: int):
     parcel = db.session.get(Parcel, parcel_id)
     if parcel is None:
-        return jsonify(message="Parcel not found."), 404
+        return jsonify(error="Parcel not found."), 404
     if g.current_user.role != "admin" and parcel.owner_id != g.current_user.id:
-        return jsonify(message="You do not have access to this parcel."), 403
+        return jsonify(error="You do not have access to this parcel."), 403
     return jsonify(parcel_data(parcel))
 
 
@@ -147,9 +147,9 @@ def all_parcels():
 def update_status(parcel_id: int):
     parcel, body = db.session.get(Parcel, parcel_id), json_body()
     if parcel is None:
-        return jsonify(message="Parcel not found."), 404
+        return jsonify(error="Parcel not found."), 404
     if body is None or body.get("status") not in PARCEL_STATUSES:
-        return jsonify(message="A valid parcel status is required."), 400
+        return jsonify(error="A valid parcel status is required."), 400
     parcel.status = body["status"]
     db.session.commit()
     return jsonify(parcel_data(parcel, include_owner_name=True))
@@ -160,10 +160,10 @@ def update_status(parcel_id: int):
 def update_location(parcel_id: int):
     parcel, body = db.session.get(Parcel, parcel_id), json_body()
     if parcel is None:
-        return jsonify(message="Parcel not found."), 404
+        return jsonify(error="Parcel not found."), 404
     location = str(body.get("currentLocation", "")).strip() if body else ""
     if not location:
-        return jsonify(message="Current location is required."), 400
+        return jsonify(error="Current location is required."), 400
     parcel.current_location = location
     db.session.commit()
     return jsonify(parcel_data(parcel, include_owner_name=True))

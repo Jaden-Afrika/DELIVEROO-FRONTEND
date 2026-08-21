@@ -23,14 +23,14 @@ def require_auth(view):
     def wrapped(*args, **kwargs):
         scheme, _, token = request.headers.get("Authorization", "").partition(" ")
         if scheme.lower() != "bearer" or not token:
-            return jsonify(message="Authentication is required."), 401
+            return jsonify(error="Authentication is required."), 401
         try:
             payload = jwt.decode(token, current_app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
             user = User.query.get(int(payload["sub"]))
         except (jwt.PyJWTError, KeyError, TypeError, ValueError):
-            return jsonify(message="Your session is invalid or has expired."), 401
+            return jsonify(error="Your session is invalid or has expired."), 401
         if user is None:
-            return jsonify(message="Your session is invalid or has expired."), 401
+            return jsonify(error="Your session is invalid or has expired."), 401
         g.current_user = user
         return view(*args, **kwargs)
 
@@ -42,7 +42,7 @@ def require_admin(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         if g.current_user.role != "admin":
-            return jsonify(message="Administrator access is required."), 403
+            return jsonify(error="Administrator access is required."), 403
         return view(*args, **kwargs)
 
     return wrapped
