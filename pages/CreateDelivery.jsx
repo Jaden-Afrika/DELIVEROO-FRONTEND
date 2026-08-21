@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { submitParcel, resetCreateStatus } from "../features/parcels/parcelsSlice";
+import { createParcel } from "../src/features/parcels/parcelsSlice";
 import { WEIGHT_CATEGORIES, estimatePrice } from "../features/parcels/parcelsAPI";
 import RouteMap from "../src/components/RouteMap";
 
 export default function CreateDelivery() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { createStatus, createError, lastCreatedId } = useSelector((s) => s.parcels);
+  const user = useSelector((s) => s.auth.user);
 
   const [form, setForm] = useState({
     pickupLocation: "",
@@ -26,13 +26,6 @@ export default function CreateDelivery() {
   };
   const isValid = !errors.pickupLocation && !errors.destination && !errors.weightCategory;
   const price = form.weightCategory ? estimatePrice(form.weightCategory, distanceKm) : null;
-
-  useEffect(() => {
-    if (createStatus === "succeeded" && lastCreatedId) {
-      navigate("/parcels");
-      dispatch(resetCreateStatus());
-    }
-  }, [createStatus, lastCreatedId, navigate, dispatch]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -52,7 +45,14 @@ export default function CreateDelivery() {
     e.preventDefault();
     setTouched({ pickupLocation: true, destination: true, weightCategory: true });
     if (!isValid) return;
-    dispatch(submitParcel({ ...form, distanceKm, estimatedPrice: price }));
+    dispatch(createParcel({
+      pickupLocation: form.pickupLocation,
+      destination: form.destination,
+      weight: form.weightCategory,
+      price,
+      createdBy: user?.id,
+    }));
+    navigate("/parcels");
   }
 
   return (
@@ -140,7 +140,7 @@ export default function CreateDelivery() {
           <div className="flex items-center justify-between">
             <span className="text-sm text-fog">Estimated price</span>
             <span className="text-lg font-display font-semibold text-ink">
-              {price !== null ? `KSh ${price.toLocaleString()}` : "—"}
+              {price !== null ? `KSh ${price.toLocaleString()}` : "\u2014"}
             </span>
           </div>
           {durationText && distanceKm > 0 && (
@@ -150,18 +150,11 @@ export default function CreateDelivery() {
           )}
         </div>
 
-        {createStatus === "failed" && createError && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-            {createError}
-          </p>
-        )}
-
         <button
           type="submit"
-          disabled={createStatus === "loading"}
-          className="w-full rounded-lg bg-slate-900 text-white text-sm font-semibold py-2.5 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition"
+          className="w-full rounded-lg bg-slate-900 text-white text-sm font-semibold py-2.5 hover:bg-slate-800 transition"
         >
-          {createStatus === "loading" ? "Submitting..." : "Submit delivery"}
+          Submit delivery
         </button>
       </form>
     </div>
