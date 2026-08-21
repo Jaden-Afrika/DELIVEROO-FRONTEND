@@ -29,8 +29,8 @@ export default function AuthPage({ mode }) {
   const inputClass = 'mt-1.5 block w-full rounded-lg border border-slate-300 bg-paper px-3 py-2.5 text-ink placeholder:text-fog focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500'
 
   return (
-    <main className="min-h-screen bg-paper px-4 py-6 sm:px-8 sm:py-10">
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:grid-cols-[1.05fr_.95fr]">
+    <main className="min-h-screen bg-ink px-4 py-6 sm:px-8 sm:py-10">
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-5xl overflow-hidden rounded-2xl border border-amber/50 bg-white shadow-2xl lg:grid-cols-[1.05fr_.95fr]">
         <section className="order-2 flex items-center p-6 sm:p-12 lg:order-1">
           <div className="mx-auto w-full max-w-sm">
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-amber">{isSignup ? 'Start dispatching' : 'Welcome back'}</p>
