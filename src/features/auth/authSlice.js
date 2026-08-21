@@ -23,6 +23,12 @@ const authSlice = createSlice({
       localStorage.removeItem('parcelpilot-user')
       localStorage.removeItem('parcelpilot-token')
     },
+    // Clears a stale failed status/error so /login and /signup each
+    // start fresh instead of showing the previous page's error.
+    clearAuthError(state) {
+      state.status = 'idle'
+      state.error = null
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -65,5 +71,5 @@ function clearSession(state) {
   localStorage.removeItem('parcelpilot-token')
 }
 
-export const { logout } = authSlice.actions
+export const { logout, clearAuthError } = authSlice.actions
 export default authSlice.reducer
