@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { loginUser, signupUser } from '../../features/auth/authSlice'
+import { clearAuthError, loginUser, signupUser } from '../../features/auth/authSlice'
 
 const deliveryImage = 'https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&w=1200&q=85'
 
@@ -15,6 +15,11 @@ export default function AuthPage({ mode }) {
   const [validationError, setValidationError] = useState('')
 
   const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+
+  // Start each auth page fresh so an error from /signup doesn't linger on /login (and vice versa).
+  useEffect(() => {
+    dispatch(clearAuthError())
+  }, [dispatch])
 
   async function submit(event) {
     event.preventDefault()

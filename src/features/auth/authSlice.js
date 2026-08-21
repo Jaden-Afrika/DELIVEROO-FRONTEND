@@ -23,6 +23,12 @@ const authSlice = createSlice({
       localStorage.removeItem('parcelpilot-user')
       localStorage.removeItem('parcelpilot-token')
     },
+    // Clears a stale failed status/error so /login and /signup each
+    // start fresh instead of showing the previous page's error.
+    clearAuthError(state) {
+      state.status = 'idle'
+      state.error = null
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -44,7 +50,9 @@ function setLoading(state) {
 
 function setSession(state, action) {
   state.user = action.payload.user
-  state.token = action.payload.token
+  // The live API returns the JWT as `access_token` (not `token`); accept both
+  // so the session token is no longer stored as undefined.
+  state.token = action.payload.token ?? action.payload.access_token
   state.status = 'succeeded'
   localStorage.setItem('parcelpilot-user', JSON.stringify(state.user))
   localStorage.setItem('parcelpilot-token', state.token)
@@ -63,5 +71,5 @@ function clearSession(state) {
   localStorage.removeItem('parcelpilot-token')
 }
 
-export const { logout } = authSlice.actions
+export const { logout, clearAuthError } = authSlice.actions
 export default authSlice.reducer
