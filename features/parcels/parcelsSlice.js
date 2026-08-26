@@ -1,6 +1,6 @@
 // parcelsSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { createParcel, fetchMyParcels } from "./parcelsAPI";
+import { createParcel, fetchMyParcels, fetchParcelById, updateDestination as updateDestinationRequest, fetchStatusHistory as fetchStatusHistoryRequest, cancelParcel as cancelParcelRequest } from "./parcelsAPI";
 
 /**
  * Shape of a parcel object coming from the backend (align with team):
@@ -48,6 +48,45 @@ export const loadMyParcels = createAsyncThunk(
   }
 );
 
+export const loadParcel = createAsyncThunk(
+  "parcels/loadParcel",
+  async (id, { rejectWithValue }) => {
+    try {
+      return await fetchParcelById(id);
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Could not load parcel details."
+      );
+    }
+  }
+);
+
+export const cancelOrder = createAsyncThunk(
+  "parcels/cancelOrder",
+  async (id, { rejectWithValue }) => {
+    try {
+      return await cancelParcelRequest(id);
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Could not cancel this order."
+      );
+    }
+  }
+);
+
+export const changeDestination = createAsyncThunk(
+  "parcels/changeDestination",
+  async ({ id, destination }, { rejectWithValue }) => {
+    try {
+      return await updateDestinationRequest(id, destination);
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Could not update destination."
+      );
+    }
+  }
+);
+
 const initialState = {
   items: [],
   listStatus: "idle", // idle | loading | succeeded | failed
@@ -55,6 +94,11 @@ const initialState = {
   createStatus: "idle", // idle | loading | succeeded | failed
   createError: null,
   lastCreatedId: null,
+  detailStatus: "idle",
+  detailError: null,
+  cancellingId: null,
+  updateDestStatus: "idle",
+  updateDestError: null,
 };
 
 const parcelsSlice = createSlice({
@@ -65,32 +109,6 @@ const parcelsSlice = createSlice({
       state.createStatus = "idle";
       state.createError = null;
       state.lastCreatedId = null;
-    },
-    // Guarded mutations — only allowed before delivery. The guards live
-    // here (not just in the UI) so the rule holds no matter what triggers
-    // the action, matching the existing slices' style.
-    cancelParcel: {
-      reducer(state, action) {
-        const parcel = state.items.find((p) => p.id === action.payload.parcelId);
-        if (!parcel) return;
-        if (parcel.status === PARCEL_STATUS.DELIVERED) return;
-        parcel.status = PARCEL_STATUS.CANCELLED;
-      },
-      prepare(parcelId) {
-        return { payload: { parcelId } };
-      },
-    },
-    changeDestination: {
-      reducer(state, action) {
-        const { parcelId, newDestination } = action.payload;
-        const parcel = state.items.find((p) => p.id === parcelId);
-        if (!parcel) return;
-        if (parcel.status === PARCEL_STATUS.DELIVERED) return;
-        parcel.destination = newDestination;
-      },
-      prepare(parcelId, newDestination) {
-        return { payload: { parcelId, newDestination } };
-      },
     },
   },
   extraReducers: (builder) => {
@@ -119,11 +137,49 @@ const parcelsSlice = createSlice({
       .addCase(loadMyParcels.rejected, (state, action) => {
         state.listStatus = "failed";
         state.listError = action.payload;
+      })
+      .addCase(loadParcel.pending, (state) => {
+        state.detailStatus = "loading";
+        state.detailError = null;
+      })
+      .addCase(loadParcel.fulfilled, (state, action) => {
+        state.detailStatus = "succeeded";
+        const idx = state.items.findIndex((p) => p.id === action.payload.id);
+        if (idx >= 0) state.items[idx] = action.payload;
+        else state.items.push(action.payload);
+      })
+      .addCase(loadParcel.rejected, (state, action) => {
+        state.detailStatus = "failed";
+        state.detailError = action.payload;
+      })
+      .addCase(cancelOrder.pending, (state, action) => {
+        state.cancellingId = action.meta.arg;
+      })
+      .addCase(cancelOrder.fulfilled, (state, action) => {
+        state.cancellingId = null;
+        const idx = state.items.findIndex((p) => p.id === action.payload.id);
+        if (idx >= 0) state.items[idx] = action.payload;
+      })
+      .addCase(cancelOrder.rejected, (state) => {
+        state.cancellingId = null;
+      })
+      .addCase(changeDestination.pending, (state) => {
+        state.updateDestStatus = "loading";
+        state.updateDestError = null;
+      })
+      .addCase(changeDestination.fulfilled, (state, action) => {
+        state.updateDestStatus = "succeeded";
+        const idx = state.items.findIndex((p) => p.id === action.payload.id);
+        if (idx >= 0) state.items[idx] = action.payload;
+      })
+      .addCase(changeDestination.rejected, (state, action) => {
+        state.updateDestStatus = "failed";
+        state.updateDestError = action.payload;
       });
   },
 });
 
-export const { resetCreateStatus, cancelParcel, changeDestination } = parcelsSlice.actions;
+export const { resetCreateStatus } = parcelsSlice.actions;
 
 export const selectParcelById = (state, parcelId) =>
   state.parcels.items.find((p) => p.id === parcelId) ?? null;

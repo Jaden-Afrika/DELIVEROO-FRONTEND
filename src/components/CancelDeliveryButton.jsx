@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { cancelParcel, PARCEL_STATUS } from '../../features/parcels/parcelsSlice'
+import { cancelOrder, PARCEL_STATUS } from '../../features/parcels/parcelsSlice'
 import ConfirmModal from './ConfirmModal'
 
 export default function CancelDeliveryButton({ parcel, currentUserId }) {
@@ -10,6 +10,7 @@ export default function CancelDeliveryButton({ parcel, currentUserId }) {
 
   const isOwner = parcel.ownerId === currentUserId
   const isDelivered = parcel.status === PARCEL_STATUS.DELIVERED
+  const isCancelled = parcel.status === PARCEL_STATUS.CANCELLED
 
   // Not the creator: don't show the control at all — it's not their
   // parcel to cancel, so there's nothing to explain.
@@ -20,12 +21,16 @@ export default function CancelDeliveryButton({ parcel, currentUserId }) {
       setBlockedMessage('This parcel has already been delivered and can no longer be cancelled.')
       return
     }
+    if (isCancelled) {
+      setBlockedMessage('This parcel has already been cancelled.')
+      return
+    }
     setBlockedMessage('')
     setShowConfirm(true)
   }
 
   function handleConfirm() {
-    dispatch(cancelParcel(parcel.id))
+    dispatch(cancelOrder(parcel.id))
     setShowConfirm(false)
   }
 
@@ -35,7 +40,7 @@ export default function CancelDeliveryButton({ parcel, currentUserId }) {
         type="button"
         className="rounded-lg border border-caution bg-white px-4 py-2.5 text-sm font-semibold text-caution disabled:cursor-not-allowed disabled:opacity-50"
         onClick={handleClick}
-        disabled={isDelivered}
+        disabled={isDelivered || isCancelled}
         aria-disabled={isDelivered}
       >
         Cancel delivery

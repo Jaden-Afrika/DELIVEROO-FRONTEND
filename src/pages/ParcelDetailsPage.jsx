@@ -1,6 +1,7 @@
+import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { selectParcelById } from '../../features/parcels/parcelsSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { loadParcel, selectParcelById } from '../../features/parcels/parcelsSlice'
 import { WEIGHT_CATEGORIES } from '../../features/parcels/parcelsAPI'
 import StatusBadge from '../components/StatusBadge'
 import CancelDeliveryButton from '../components/CancelDeliveryButton'
@@ -22,8 +23,23 @@ function weightLabel(weightCategory) {
 
 export default function ParcelDetailsPage() {
   const { id } = useParams()
+  const dispatch = useDispatch()
   const parcel = useSelector((state) => selectParcelById(state, id))
+  const detailStatus = useSelector((state) => state.parcels.detailStatus)
+  const detailError = useSelector((state) => state.parcels.detailError)
   const { currentUser } = useAuth()
+
+  useEffect(() => {
+    if (id) dispatch(loadParcel(id))
+  }, [dispatch, id])
+
+  if (detailStatus === 'loading') {
+    return <p className="mx-auto max-w-xl p-5 text-left text-ink">Loading parcel details...</p>
+  }
+
+  if (detailError) {
+    return <p className="mx-auto max-w-xl p-5 text-left text-caution">{detailError}</p>
+  }
 
   if (!parcel) {
     return <p className="mx-auto max-w-xl p-5 text-left text-ink">Parcel not found.</p>

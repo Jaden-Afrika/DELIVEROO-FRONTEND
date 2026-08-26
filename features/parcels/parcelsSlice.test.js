@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import parcelsReducer, {
-  cancelParcel,
+  cancelOrder,
   changeDestination,
   selectAllParcels,
   selectParcelById,
@@ -8,8 +8,17 @@ import parcelsReducer, {
 
 jest.mock('../../src/api/client', () => ({
   __esModule: true,
-  default: { get: jest.fn(), post: jest.fn() },
+  default: { get: jest.fn(), post: jest.fn(), patch: jest.fn() },
   delay: jest.fn(),
+}))
+
+jest.mock('./parcelsAPI', () => ({
+  createParcel: jest.fn(),
+  fetchMyParcels: jest.fn(),
+  fetchParcelById: jest.fn(),
+  updateDestination: jest.fn(),
+  fetchStatusHistory: jest.fn(),
+  cancelParcel: jest.fn(),
 }))
 
 function setupStore(items = []) {
@@ -23,6 +32,11 @@ function setupStore(items = []) {
         createStatus: 'idle',
         createError: null,
         lastCreatedId: null,
+        detailStatus: 'idle',
+        detailError: null,
+        cancellingId: null,
+        updateDestStatus: 'idle',
+        updateDestError: null,
       },
     },
   })
@@ -43,33 +57,49 @@ function parcel(id, status) {
 }
 
 describe('parcelsSlice', () => {
-  it('cancelParcel sets status to cancelled for a non-delivered parcel', () => {
+  it('cancelOrder thunk updates status via API', async () => {
+    const { cancelParcel } = require('./parcelsAPI')
+    const updated = { ...parcel('p-1', 'pending'), status: 'cancelled', cancelledAt: new Date().toISOString() }
+    cancelParcel.mockResolvedValueOnce(updated)
+
     const store = setupStore([parcel('p-1', 'pending')])
-    store.dispatch(cancelParcel('p-1'))
+    const result = await store.dispatch(cancelOrder('p-1'))
+
+    expect(result.type).toBe(cancelOrder.fulfilled.type)
     expect(store.getState().parcels.items[0].status).toBe('cancelled')
   })
 
-  it('cancelParcel does nothing once status is delivered', () => {
+  it('cancelOrder thunk rejects on API error', async () => {
+    const { cancelParcel } = require('./parcelsAPI')
+    cancelParcel.mockRejectedValueOnce({ response: { data: { message: 'Cannot cancel a delivered parcel.' } } })
+
     const store = setupStore([parcel('p-2', 'delivered')])
-    store.dispatch(cancelParcel('p-2'))
+    const result = await store.dispatch(cancelOrder('p-2'))
+
+    expect(result.type).toBe(cancelOrder.rejected.type)
     expect(store.getState().parcels.items[0].status).toBe('delivered')
   })
 
-  it('cancelParcel does nothing for a missing parcel', () => {
-    const store = setupStore([parcel('p-1', 'pending')])
-    store.dispatch(cancelParcel('nope'))
-    expect(store.getState().parcels.items[0].status).toBe('pending')
-  })
+  it('changeDestination thunk updates destination via API', async () => {
+    const { updateDestination } = require('./parcelsAPI')
+    const updated = { ...parcel('p-1', 'in_transit'), destination: 'Kitengela, Kajiado' }
+    updateDestination.mockResolvedValueOnce(updated)
 
-  it('changeDestination updates the destination for a non-delivered parcel', () => {
     const store = setupStore([parcel('p-1', 'in_transit')])
-    store.dispatch(changeDestination('p-1', 'Kitengela, Kajiado'))
+    const result = await store.dispatch(changeDestination({ id: 'p-1', destination: 'Kitengela, Kajiado' }))
+
+    expect(result.type).toBe(changeDestination.fulfilled.type)
     expect(store.getState().parcels.items[0].destination).toBe('Kitengela, Kajiado')
   })
 
-  it('changeDestination does nothing once status is delivered', () => {
+  it('changeDestination thunk rejects on API error', async () => {
+    const { updateDestination } = require('./parcelsAPI')
+    updateDestination.mockRejectedValueOnce({ response: { data: { message: 'Cannot update destination for a delivered parcel.' } } })
+
     const store = setupStore([parcel('p-2', 'delivered')])
-    store.dispatch(changeDestination('p-2', 'Langata, Nairobi'))
+    const result = await store.dispatch(changeDestination({ id: 'p-2', destination: 'Langata, Nairobi' }))
+
+    expect(result.type).toBe(changeDestination.rejected.type)
     expect(store.getState().parcels.items[0].destination).toBe('Westlands, Nairobi')
   })
 

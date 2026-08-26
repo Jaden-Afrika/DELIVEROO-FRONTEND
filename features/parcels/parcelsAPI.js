@@ -55,3 +55,27 @@ export async function fetchParcelById(id) {
   const { data } = await apiClient.get(`/parcels/${id}`);
   return data;
 }
+
+/**
+ * Cancel a parcel delivery.
+ */
+export async function cancelParcel(id) {
+  const { data } = await apiClient.patch(`/parcels/${id}/cancel`);
+  return data;
+}
+
+/**
+ * Update a parcel's destination.
+ */
+export async function updateDestination(id, destination) {
+  const { data } = await apiClient.patch(`/parcels/${id}/destination`, { destination });
+  return data;
+}
+
+/**
+ * Fetch status history for a parcel.
+ */
+export async function fetchStatusHistory(id) {
+  const { data } = await apiClient.get(`/parcels/${id}/status-history`);
+  return data;
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { changeDestination, PARCEL_STATUS } from '../../features/parcels/parcelsSlice'
 
 export default function ChangeDestinationForm({ parcel, currentUserId }) {
@@ -8,9 +8,11 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
   const [draftDestination, setDraftDestination] = useState(parcel.destination)
   const [blockedMessage, setBlockedMessage] = useState('')
   const [validationError, setValidationError] = useState('')
+  const updateDestStatus = useSelector((state) => state.parcels.updateDestStatus)
 
   const isOwner = parcel.ownerId === currentUserId
   const isDelivered = parcel.status === PARCEL_STATUS.DELIVERED
+  const isCancelled = parcel.status === PARCEL_STATUS.CANCELLED
 
   if (!isOwner) return null
 
@@ -19,12 +21,16 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
       setBlockedMessage('This parcel has already been delivered, so the destination can no longer be changed.')
       return
     }
+    if (isCancelled) {
+      setBlockedMessage('This parcel has been cancelled, so the destination can no longer be changed.')
+      return
+    }
     setBlockedMessage('')
     setDraftDestination(parcel.destination)
     setIsEditing(true)
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     const trimmed = draftDestination.trim()
     if (!trimmed) {
@@ -32,8 +38,12 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
       return
     }
     setValidationError('')
-    dispatch(changeDestination(parcel.id, trimmed))
-    setIsEditing(false)
+    const result = await dispatch(changeDestination({ id: parcel.id, destination: trimmed }))
+    if (changeDestination.fulfilled.match(result)) {
+      setIsEditing(false)
+    } else {
+      setValidationError(result.payload || 'Failed to update destination.')
+    }
   }
 
   if (!isEditing) {
@@ -43,7 +53,7 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
           type="button"
           className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
           onClick={openForm}
-          disabled={isDelivered}
+          disabled={isDelivered || isCancelled}
         >
           Change destination
         </button>
@@ -69,16 +79,18 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
         placeholder="e.g. Kilimani, Nairobi"
       />
       {validationError && <p className="text-sm text-caution">{validationError}</p>}
+      {updateDestStatus === 'loading' && <p className="text-sm text-fog">Updating...</p>}
       <div className="mt-1 flex gap-2">
         <button
           type="button"
           className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
           onClick={() => setIsEditing(false)}
+          disabled={updateDestStatus === 'loading'}
         >
           Cancel
         </button>
-        <button type="submit" className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-white">
-          Save destination
+        <button type="submit" className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-white" disabled={updateDestStatus === 'loading'}>
+          {updateDestStatus === 'loading' ? 'Saving...' : 'Save destination'}
         </button>
       </div>
     </form>
