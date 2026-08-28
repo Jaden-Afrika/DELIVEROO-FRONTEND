@@ -17,6 +17,7 @@ coverage
 .env.*.local
 
 # Editor directories and files
+.vscode
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -26,6 +27,17 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Personal shell / tool config that must never be committed
+.bash_profile
+.bashrc
+.zprofile
+.zshrc
+.profile
+.gitconfig
+.gitmodules
+.ripgreprc
+.mcp.json
 
 # Python / backend artifacts not part of the frontend repo
 .venv/
