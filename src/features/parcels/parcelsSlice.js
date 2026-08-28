@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { cancelParcel as cancelParcelRequest, createParcel as createParcelRequest, fetchMyParcels } from './parcelsAPI'
+import { cancelParcel as cancelParcelRequest, createParcel as createParcelRequest, fetchMyParcels, updateDestination as updateDestinationRequest } from './parcelsAPI'
 
 export const PARCEL_STATUS = { PENDING: 'pending', IN_TRANSIT: 'in_transit', DELIVERED: 'delivered', CANCELLED: 'cancelled' }
-const initialState = { byId: {}, listStatus: 'idle', listError: null, createStatus: 'idle', createError: null, cancellingId: null }
+const initialState = { byId: {}, listStatus: 'idle', listError: null, createStatus: 'idle', createError: null, cancellingId: null, updateDestStatus: 'idle', updateDestError: null }
 
 export const loadMyParcels = createAsyncThunk('parcels/loadMyParcels', async (_, { rejectWithValue }) => {
   try { return await fetchMyParcels() } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not load your orders.') }
@@ -13,6 +13,9 @@ export const submitParcel = createAsyncThunk('parcels/submitParcel', async (payl
 })
 export const cancelOrder = createAsyncThunk('parcels/cancelOrder', async (id, { rejectWithValue }) => {
   try { return await cancelParcelRequest(id) } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not cancel this order.') }
+})
+export const changeDestination = createAsyncThunk('parcels/changeDestination', async ({ id, destination }, { rejectWithValue }) => {
+  try { return await updateDestinationRequest(id, destination) } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not update destination.') }
 })
 
 const parcelsSlice = createSlice({
@@ -33,15 +36,6 @@ const parcelsSlice = createSlice({
       },
       prepare(parcelId) { return { payload: { parcelId } } },
     },
-    changeDestination: {
-      reducer(state, action) {
-        const { parcelId, newDestination } = action.payload
-        const parcel = state.byId[parcelId]
-        if (!parcel || parcel.status === PARCEL_STATUS.DELIVERED) return
-        parcel.destination = newDestination
-      },
-      prepare(parcelId, newDestination) { return { payload: { parcelId, newDestination } } },
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -54,10 +48,13 @@ const parcelsSlice = createSlice({
       .addCase(cancelOrder.pending, (state, action) => { state.cancellingId = action.meta.arg })
       .addCase(cancelOrder.fulfilled, (state, action) => { state.cancellingId = null; state.byId[action.payload.id] = action.payload })
       .addCase(cancelOrder.rejected, (state) => { state.cancellingId = null })
+      .addCase(changeDestination.pending, (state) => { state.updateDestStatus = 'loading'; state.updateDestError = null })
+      .addCase(changeDestination.fulfilled, (state, action) => { state.updateDestStatus = 'succeeded'; state.byId[action.payload.id] = action.payload })
+      .addCase(changeDestination.rejected, (state, action) => { state.updateDestStatus = 'failed'; state.updateDestError = action.payload })
   },
 })
 
-export const { cancelParcel, changeDestination, createParcel } = parcelsSlice.actions
+export const { cancelParcel, createParcel } = parcelsSlice.actions
 export const selectParcelById = (state, parcelId) => state.parcels.byId[parcelId]
 export const selectAllParcels = (state) => Object.values(state.parcels.byId)
 export const selectParcelsForUser = (state) => selectAllParcels(state)
