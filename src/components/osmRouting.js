@@ -13,13 +13,18 @@ export async function geocodeAddress(address) {
 }
 
 export async function getRoute(origin, destination) {
-  const url = `${OSRM_URL}/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=false`
+  const url = `${OSRM_URL}/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`
   const response = await fetch(url)
   if (!response.ok) throw new Error('Routing request failed.')
   const data = await response.json()
   if (data.code !== 'Ok' || !data.routes?.length) return null
   const route = data.routes[0]
-  return { distanceKm: route.distance / 1000, durationMinutes: Math.round(route.duration / 60) }
+  const geometry = route.geometry?.coordinates?.map(([lng, lat]) => ({ lat, lng })) ?? []
+  return {
+    distanceKm: route.distance / 1000,
+    durationMinutes: Math.round(route.duration / 60),
+    geometry,
+  }
 }
 
 export function formatDuration(minutes) {
