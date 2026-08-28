@@ -85,8 +85,8 @@ describe('signup', () => {
       expect.objectContaining({ name: 'Test User', email: 'test@example.com' }),
       expect.anything(), // createAsyncThunk passes the thunkAPI as 2nd arg
     )
-    expect(JSON.parse(localStorage.getItem('parcelpilot-user'))).toMatchObject({ email: 'test@example.com' })
-    expect(localStorage.getItem('parcelpilot-token')).toBe('header.payload.signature')
+    expect(JSON.parse(localStorage.getItem('deliveroo-user'))).toMatchObject({ email: 'test@example.com' })
+    expect(localStorage.getItem('deliveroo-token')).toBe('header.payload.signature')
   })
 
   it('shows the specific API error on duplicate email', async () => {
@@ -144,8 +144,8 @@ describe('logout', () => {
     await user.click(screen.getByRole('button', { name: 'Log out' }))
 
     expect(await screen.findByText('Welcome back')).toBeInTheDocument()
-    expect(localStorage.getItem('parcelpilot-user')).toBeNull()
-    expect(localStorage.getItem('parcelpilot-token')).toBeNull()
+    expect(localStorage.getItem('deliveroo-user')).toBeNull()
+    expect(localStorage.getItem('deliveroo-token')).toBeNull()
     expect(logout).toHaveBeenCalled()
   })
 })
@@ -160,8 +160,8 @@ describe('protected routes', () => {
     // Part 1 — hydration: simulate a refresh by seeding storage, then
     // re-importing ONLY the slice so its module-level localStorage read
     // runs against seeded values (no React involved).
-    localStorage.setItem('parcelpilot-user', JSON.stringify(testUser))
-    localStorage.setItem('parcelpilot-token', 'a.b.c')
+    localStorage.setItem('deliveroo-user', JSON.stringify(testUser))
+    localStorage.setItem('deliveroo-token', 'a.b.c')
     jest.resetModules()
     const freshAuth = require('../features/auth/authSlice')
     const store = configureStore({
