@@ -26,3 +26,15 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Python / backend artifacts not part of the frontend repo
+.venv/
+__pycache__/
+*.py[cod]
+backend/
+alembic.ini
+migrations/
+requirements.txt
+
+# Stray nested checkout dir
+DELIVEROO-FRONTEND/
