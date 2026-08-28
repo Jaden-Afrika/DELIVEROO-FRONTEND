@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { selectParcelsForUser } from '../features/parcels/parcelsSlice'
 import StatusBadge from '../components/StatusBadge'
+import { formatCurrency } from '../utils/formatCurrency'
 
 // Placeholder for the full Order List page — already reads real data
 // from the parcels slice so the route is testable today.
@@ -32,7 +33,7 @@ export default function OrdersPage() {
                 </div>
               <StatusBadge status={parcel.status} />
               </div>
-              <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-3 text-xs text-fog"><span>{parcel.currentLocation}</span><span className="font-display text-base text-ink">KSh {parcel.price.toLocaleString()}</span></div>
+              <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-3 text-xs text-fog"><span>{parcel.currentLocation}</span><span className="font-display text-base text-ink">{formatCurrency(parcel.price, parcel.currency)}</span></div>
             </Link>
           </li>
         ))}

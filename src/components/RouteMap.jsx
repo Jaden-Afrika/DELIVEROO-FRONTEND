@@ -22,9 +22,21 @@ function FitBounds({ pickupCoord, destCoord }) {
   return null
 }
 
-export default function RouteMap({ pickup, destination, onRouteCalculated }) {
+export default function RouteMap({
+  pickup,
+  destination,
+  pickupLat,
+  pickupLng,
+  destinationLat,
+  destinationLng,
+  distanceKm,
+  estimatedTravelTime,
+  onRouteCalculated,
+  onStatusChange,
+}) {
   const [pickupCoord, setPickupCoord] = useState(null)
   const [destCoord, setDestCoord] = useState(null)
+  const [routeGeometry, setRouteGeometry] = useState(null)
   const [durationText, setDurationText] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -32,42 +44,83 @@ export default function RouteMap({ pickup, destination, onRouteCalculated }) {
   useEffect(() => {
     setPickupCoord(null)
     setDestCoord(null)
+    setRouteGeometry(null)
     setDurationText(null)
     setError(null)
-    if (!pickup?.trim() || !destination?.trim()) return undefined
+    setLoading(false)
 
     let cancelled = false
-    setLoading(true)
+    const hasPickupCoordinates = pickupLat != null && pickupLng != null
+    const hasDestinationCoordinates = destinationLat != null && destinationLng != null
+    const pickupAddress = pickup?.trim()
+    const destinationAddress = destination?.trim()
+    const canResolvePickup = hasPickupCoordinates || pickupAddress
+    const canResolveDestination = hasDestinationCoordinates || destinationAddress
+
+    if (!canResolvePickup || !canResolveDestination) {
+      onStatusChange?.('idle')
+      return () => { cancelled = true }
+    }
+
     ;(async () => {
       try {
-        const [pickupResult, destinationResult] = await Promise.all([geocodeAddress(pickup), geocodeAddress(destination)])
+        setLoading(true)
+        onStatusChange?.('loading')
+        // fallback: backend has no coordinates for this parcel yet
+        const [pickupResult, destinationResult] = await Promise.all([
+          hasPickupCoordinates ? { lat: pickupLat, lng: pickupLng } : (pickupAddress ? geocodeAddress(pickupAddress) : null),
+          hasDestinationCoordinates ? { lat: destinationLat, lng: destinationLng } : (destinationAddress ? geocodeAddress(destinationAddress) : null),
+        ])
         if (cancelled) return
-        if (!pickupResult || !destinationResult) {
-          setError("Couldn't find one of those locations - try being more specific.")
-          return
-        }
         setPickupCoord(pickupResult)
         setDestCoord(destinationResult)
+
+        if (!pickupResult || !destinationResult) {
+          setError("Couldn't find one of those locations - try being more specific.")
+          onStatusChange?.('error')
+          return
+        }
+
+        const hasStoredRouteDetails = distanceKm != null || estimatedTravelTime != null
+        if (hasStoredRouteDetails) {
+          const duration = estimatedTravelTime != null ? formatDuration(estimatedTravelTime) : null
+          setDurationText(duration)
+        }
+
         const route = await getRoute(pickupResult, destinationResult)
         if (cancelled) return
         if (!route) {
-          setError('No driving route found between those locations.')
+          if (!hasStoredRouteDetails) setError('No driving route found between those locations.')
+          onStatusChange?.('error')
           return
         }
-        const duration = formatDuration(route.durationMinutes)
-        setDurationText(duration)
-        onRouteCalculated?.({ distanceKm: route.distanceKm, durationText: duration })
+        setRouteGeometry(route.geometry?.length ? route.geometry : null)
+        if (!hasStoredRouteDetails) {
+          const duration = formatDuration(route.durationMinutes)
+          setDurationText(duration)
+          onRouteCalculated?.({ distanceKm: route.distanceKm, durationText: duration })
+        }
+        onStatusChange?.('ready')
       } catch {
-        if (!cancelled) setError("Couldn't reach the map service. Try again in a moment.")
+        if (!cancelled && distanceKm == null && estimatedTravelTime == null) {
+          setError("Couldn't reach the map service. Try again in a moment.")
+        }
+        if (!cancelled) onStatusChange?.('error')
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
     return () => { cancelled = true }
-  }, [pickup, destination, onRouteCalculated])
+  }, [pickup, destination, pickupLat, pickupLng, destinationLat, destinationLng, distanceKm, estimatedTravelTime, onRouteCalculated, onStatusChange])
 
   const bothPointsReady = pickupCoord && destCoord
-  const center = bothPointsReady ? pickupCoord : NAIROBI_CENTER
+  const onePointReady = pickupCoord || destCoord
+  const center = onePointReady || NAIROBI_CENTER
+  const missingLocationMessage = pickupCoord && !destCoord
+    ? 'Destination location not available for this parcel'
+    : !pickupCoord && destCoord
+      ? 'Pickup location not available for this parcel'
+      : 'Map data not available for this parcel'
 
-  return <div className="overflow-hidden rounded-xl border border-slate-200 bg-paper"><div className="h-56"><MapContainer center={[center.lat, center.lng]} zoom={bothPointsReady ? 12 : 11} style={{ width: '100%', height: '100%' }} scrollWheelZoom={false}><TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />{pickupCoord && <Marker position={[pickupCoord.lat, pickupCoord.lng]} icon={pickupIcon} />}{destCoord && <Marker position={[destCoord.lat, destCoord.lng]} icon={pickupIcon} />}{bothPointsReady && <Polyline positions={[[pickupCoord.lat, pickupCoord.lng], [destCoord.lat, destCoord.lng]]} pathOptions={{ color: '#F5A524', weight: 4 }} />}<FitBounds pickupCoord={pickupCoord} destCoord={destCoord} /></MapContainer></div>{loading && <p className="border-t border-slate-200 px-3 py-2 text-xs text-fog">Calculating route...</p>}{error && <p className="border-t border-caution/30 bg-caution/10 px-3 py-2 text-xs text-caution">{error}</p>}{!loading && !error && durationText && <div className="flex items-center justify-between border-t border-slate-200 bg-paper px-3 py-2 text-xs"><span className="text-fog">Estimated travel time</span><span className="font-mono text-ink">{durationText}</span></div>}</div>
+  return <div className="overflow-hidden rounded-xl border border-slate-200 bg-paper"><div className="h-56"><MapContainer center={[center.lat, center.lng]} zoom={bothPointsReady ? 12 : 11} style={{ width: '100%', height: '100%' }} scrollWheelZoom={false}><TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />{pickupCoord && <Marker position={[pickupCoord.lat, pickupCoord.lng]} icon={pickupIcon} />}{destCoord && <Marker position={[destCoord.lat, destCoord.lng]} icon={pickupIcon} />}{bothPointsReady && <Polyline positions={routeGeometry && routeGeometry.length > 1 ? routeGeometry.map((point) => [point.lat, point.lng]) : [[pickupCoord.lat, pickupCoord.lng], [destCoord.lat, destCoord.lng]]} pathOptions={{ color: '#F5A524', weight: 4 }} />}<FitBounds pickupCoord={pickupCoord} destCoord={destCoord} /></MapContainer></div>{loading && <p className="border-t border-slate-200 px-3 py-2 text-xs text-fog">Calculating route...</p>}{error && <p className="border-t border-caution/30 bg-caution/10 px-3 py-2 text-xs text-caution">{error}</p>}{!loading && !error && !bothPointsReady && <p className="border-t border-slate-200 px-3 py-2 text-xs text-fog">{missingLocationMessage}</p>}{!loading && !error && bothPointsReady && (durationText || distanceKm != null) && <div className="flex items-center justify-between border-t border-slate-200 bg-paper px-3 py-2 text-xs"><span className="text-fog">{durationText ? 'Estimated travel time' : 'Route distance'}</span><span className="font-mono text-ink">{durationText || `${distanceKm} km`}</span></div>}</div>
 }
