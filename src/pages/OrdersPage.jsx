@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useEffect, useMemo, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { selectParcelsForUser } from '../features/parcels/parcelsSlice'
+import { loadMyParcels, selectParcelsForUser } from '../features/parcels/parcelsSlice'
 import StatusBadge from '../components/StatusBadge'
 import RouteMap from '../components/RouteMap'
 import { formatCurrency } from '../utils/formatCurrency'
@@ -30,8 +30,14 @@ function routeDetails(parcel) {
 
 export default function OrdersPage() {
   const [activeFilter, setActiveFilter] = useState('all')
+  const dispatch = useDispatch()
   const user = useSelector((state) => state.auth.user)
   const parcels = useSelector((state) => selectParcelsForUser(state, user))
+  const { listStatus, listError } = useSelector((state) => state.parcels)
+
+  useEffect(() => {
+    if (listStatus === 'idle') dispatch(loadMyParcels())
+  }, [dispatch, listStatus])
 
   const summary = useMemo(() => ({
     total: parcels.length,
@@ -62,7 +68,7 @@ export default function OrdersPage() {
       {FILTERS.map((filter) => <button key={filter.value} type="button" role="tab" aria-selected={activeFilter === filter.value} onClick={() => setActiveFilter(filter.value)} className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition ${activeFilter === filter.value ? 'border-amber text-ink' : 'border-transparent text-fog hover:text-ink'}`}>{filter.label}</button>)}
     </div>
 
-    {parcels.length === 0 ? <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No orders yet</p><p className="mt-2 text-sm text-fog">{user?.role === 'admin' ? 'Completed and active orders will appear in the admin workspace.' : "You haven't sent any parcels yet. Create your first parcel to start tracking a delivery."}</p></div> : filteredParcels.length === 0 ? <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No {activeFilterLabel} parcels yet</p><p className="mt-2 text-sm text-fog">Try another status to see the rest of your deliveries.</p></div> : <ul className="mt-6 grid gap-4 lg:grid-cols-2">
+    {listStatus === 'loading' ? <p className="mt-8 text-sm text-fog">Loading your orders...</p> : listStatus === 'failed' ? <p className="mt-8 text-sm text-caution">{listError || 'Could not load your orders.'}</p> : parcels.length === 0 ? <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No orders yet</p><p className="mt-2 text-sm text-fog">{user?.role === 'admin' ? 'Completed and active orders will appear in the admin workspace.' : "You haven't sent any parcels yet. Create your first parcel to start tracking a delivery."}</p></div> : filteredParcels.length === 0 ? <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No {activeFilterLabel} parcels yet</p><p className="mt-2 text-sm text-fog">Try another status to see the rest of your deliveries.</p></div> : <ul className="mt-6 grid gap-4 lg:grid-cols-2">
       {filteredParcels.map((parcel) => {
         const weightKg = parcel.weight_kg ?? parcel.weightKg ?? parcel.weight
         const vehicle = getVehicleCategoryByValue(parcel.vehicle_category ?? parcel.vehicleCategory) ?? getVehicleCategory(weightKg)
