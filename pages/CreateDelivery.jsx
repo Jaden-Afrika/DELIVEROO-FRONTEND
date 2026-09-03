@@ -2,7 +2,8 @@ import { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { submitParcel } from "../src/features/parcels/parcelsSlice";
-import { WEIGHT_CATEGORIES, estimatePrice } from "../src/utils/parcelPricing";
+import { estimatePrice } from "../src/utils/parcelPricing";
+import { getVehicleCategory } from "../src/utils/vehicleCategory";
 import RouteMap from "../src/components/RouteMap";
 
 export default function CreateDelivery() {
@@ -13,7 +14,7 @@ export default function CreateDelivery() {
   const [form, setForm] = useState({
     pickupLocation: "",
     destination: "",
-    weightCategory: "",
+    weight: "",
   });
   const [distanceKm, setDistanceKm] = useState(0);
   const [durationText, setDurationText] = useState(null);
@@ -23,10 +24,11 @@ export default function CreateDelivery() {
   const errors = {
     pickupLocation: !form.pickupLocation.trim() ? "Pickup location is required." : "",
     destination: !form.destination.trim() ? "Destination is required." : "",
-    weightCategory: !form.weightCategory ? "Choose a weight category." : "",
+    weight: form.weight === '' || !Number.isFinite(Number(form.weight)) || Number(form.weight) < 0 ? "Enter a valid weight in kg." : "",
   };
-  const isValid = !errors.pickupLocation && !errors.destination && !errors.weightCategory;
-  const price = form.weightCategory ? estimatePrice(form.weightCategory, distanceKm) : null;
+  const isValid = !errors.pickupLocation && !errors.destination && !errors.weight;
+  const vehicleCategory = getVehicleCategory(form.weight);
+  const price = vehicleCategory ? estimatePrice(form.weight, distanceKm) : null;
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -53,12 +55,13 @@ export default function CreateDelivery() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setTouched({ pickupLocation: true, destination: true, weightCategory: true });
+    setTouched({ pickupLocation: true, destination: true, weight: true });
     if (!isValid) return;
     const result = await dispatch(submitParcel({
       pickupLocation: form.pickupLocation,
       destination: form.destination,
-      weightCategory: form.weightCategory,
+      weight: Number(form.weight),
+      vehicle_category: vehicleCategory.value,
       distanceKm: routeStatus === 'error' ? 0.1 : distanceKm,
     }));
     if (submitParcel.fulfilled.match(result)) navigate("/parcels");
@@ -123,26 +126,29 @@ export default function CreateDelivery() {
         />
 
         <div>
-          <label htmlFor="weightCategory" className="mb-1 block text-sm font-medium text-ink">
-            Weight category
+          <label htmlFor="weight" className="mb-1 block text-sm font-medium text-ink">
+            Parcel weight (kg)
           </label>
-          <select
-            id="weightCategory"
-            name="weightCategory"
-            value={form.weightCategory}
+          <div className="flex gap-3">
+            <input
+              id="weight"
+              name="weight"
+              type="number"
+              min="0"
+              step="0.1"
+              inputMode="decimal"
+              value={form.weight}
             onChange={handleChange}
             onBlur={handleBlur}
-            className="w-full rounded-lg border border-slate-300 bg-paper px-3 py-2 text-sm text-ink focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Select weight...</option>
-            {WEIGHT_CATEGORIES.map((w) => (
-              <option key={w.value} value={w.value}>
-                {w.label}
-              </option>
-            ))}
-          </select>
-          {touched.weightCategory && errors.weightCategory && (
-            <p className="mt-1 text-xs text-caution">{errors.weightCategory}</p>
+              placeholder="e.g. 7.5"
+              className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-paper px-3 py-2 text-sm text-ink placeholder:text-fog focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <div aria-live="polite" className="flex min-w-28 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-paper px-3 py-2 text-sm font-medium text-ink">
+              {vehicleCategory ? <><span aria-hidden="true">{vehicleCategory.icon}</span>{vehicleCategory.label}</> : 'Vehicle —'}
+            </div>
+          </div>
+          {touched.weight && errors.weight && (
+            <p className="mt-1 text-xs text-caution">{errors.weight}</p>
           )}
         </div>
 

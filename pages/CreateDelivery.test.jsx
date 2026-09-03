@@ -35,7 +35,7 @@ const mockNavigate = jest.fn()
 async function completeForm(user) {
   await user.type(screen.getByLabelText('Pickup location'), 'Westlands, Nairobi')
   await user.type(screen.getByLabelText('Destination'), 'Kilimani, Nairobi')
-  await user.selectOptions(screen.getByLabelText('Weight category'), 'light')
+  await user.type(screen.getByLabelText('Parcel weight (kg)'), '4')
 }
 
 describe('CreateDelivery route submission state', () => {
@@ -77,6 +77,7 @@ describe('CreateDelivery route submission state', () => {
     await user.click(screen.getByRole('button', { name: 'Submit delivery' }))
 
     expect(mockSubmitParcel).toHaveBeenCalledWith(expect.objectContaining({ distanceKm: 0.1 }))
+    expect(mockSubmitParcel).toHaveBeenCalledWith(expect.objectContaining({ weight: 4, vehicle_category: 'bike' }))
     expect(mockDispatch).toHaveBeenCalled()
   })
 

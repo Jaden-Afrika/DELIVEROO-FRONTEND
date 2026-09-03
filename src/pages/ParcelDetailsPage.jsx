@@ -6,6 +6,7 @@ import CancelDeliveryButton from '../components/CancelDeliveryButton'
 import ChangeDestinationForm from '../components/ChangeDestinationForm'
 import RouteMap from '../components/RouteMap'
 import { formatCurrency } from '../utils/formatCurrency'
+import VehicleCategory from '../components/VehicleCategory'
 
 function formatDate(isoString) {
   return new Date(isoString).toLocaleDateString('en-KE', {
@@ -42,7 +43,7 @@ export default function ParcelDetailsPage() {
           estimatedTravelTime={parcel.estimatedTravelTime}
         />
         <dl className="grid grid-cols-2 gap-4 rounded-xl border border-slate-200 bg-paper p-5">
-          {[['Pickup', parcel.pickupLocation], ['Destination', parcel.destination], ['Current location', parcel.currentLocation], ['Weight', parcel.weight], ['Price', formatCurrency(parcel.price, parcel.currency)], ['Created', formatDate(parcel.dateCreated)]].map(([label, value]) => <div key={label}><dt className="font-mono text-[11px] uppercase tracking-wide text-fog">{label}</dt><dd className={`mt-1 text-sm font-medium text-ink ${label === 'Price' ? 'font-display text-lg' : ''}`}>{value}</dd></div>)}
+          {[['Pickup', parcel.pickupLocation], ['Destination', parcel.destination], ['Current location', parcel.currentLocation], ['Weight', typeof parcel.weight === 'number' ? `${parcel.weight} kg` : parcel.weight], ['Vehicle category', <VehicleCategory key="vehicle-category" category={parcel.vehicle_category ?? parcel.vehicleCategory} weight={parcel.weight} />], ['Price', formatCurrency(parcel.price, parcel.currency)], ['Created', formatDate(parcel.dateCreated)]].map(([label, value]) => <div key={label}><dt className="font-mono text-[11px] uppercase tracking-wide text-fog">{label}</dt><dd className={`mt-1 text-sm font-medium text-ink ${label === 'Price' ? 'font-display text-lg' : ''}`}>{value}</dd></div>)}
         </dl>
       </div>
       <div className="mt-6 flex flex-col gap-4 border-t border-slate-200 pt-6">

@@ -4,8 +4,17 @@ export const WEIGHT_CATEGORIES = [
   { value: 'heavy', label: 'Heavy (10kg+)', baseFee: 700, perKmRate: 40 },
 ]
 
-export function estimatePrice(weightCategory, distanceKm = 0) {
-  const match = WEIGHT_CATEGORIES.find((category) => category.value === weightCategory)
+export function getPricingWeightCategory(weightKg) {
+  if (weightKg === '' || weightKg === null || weightKg === undefined) return null
+  const weight = Number(weightKg)
+  if (!Number.isFinite(weight) || weight < 0) return null
+  if (weight <= 2) return 'light'
+  if (weight <= 10) return 'medium'
+  return 'heavy'
+}
+
+export function estimatePrice(weightKg, distanceKm = 0) {
+  const match = WEIGHT_CATEGORIES.find((category) => category.value === getPricingWeightCategory(weightKg))
   if (!match) return 0
   return Math.round(match.baseFee + Math.max(distanceKm, 0) * match.perKmRate)
 }

@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { cancelParcel as cancelParcelRequest, createParcel as createParcelRequest, fetchMyParcels } from './parcelsAPI'
+import { getVehicleCategory } from '../../utils/vehicleCategory'
 
 export const PARCEL_STATUS = { PENDING: 'pending', IN_TRANSIT: 'in_transit', DELIVERED: 'delivered', CANCELLED: 'cancelled' }
 const initialState = { byId: {}, listStatus: 'idle', listError: null, createStatus: 'idle', createError: null, cancellingId: null }
@@ -9,7 +10,10 @@ export const loadMyParcels = createAsyncThunk('parcels/loadMyParcels', async (_,
 })
 
 export const submitParcel = createAsyncThunk('parcels/submitParcel', async (payload, { rejectWithValue }) => {
-  try { return await createParcelRequest(payload) } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not create this order.') }
+  const vehicle = getVehicleCategory(payload.weight)
+  if (!vehicle) return rejectWithValue('A valid parcel weight is required.')
+  const weight = Number(payload.weight)
+  try { return await createParcelRequest({ ...payload, weight, vehicle_category: vehicle.value }) } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not create this order.') }
 })
 export const cancelOrder = createAsyncThunk('parcels/cancelOrder', async (id, { rejectWithValue }) => {
   try { return await cancelParcelRequest(id) } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not cancel this order.') }
@@ -22,7 +26,8 @@ const parcelsSlice = createSlice({
     createParcel: {
       reducer(state, action) { state.byId[action.payload.id] = action.payload },
       prepare({ pickupLocation, destination, weight, price, createdBy }) {
-        return { payload: { id: `local-${Date.now()}`, pickupLocation, destination, weight, price, status: PARCEL_STATUS.PENDING, currentLocation: pickupLocation, dateCreated: new Date().toISOString(), createdBy } }
+        const numericWeight = Number(weight)
+        return { payload: { id: `local-${Date.now()}`, pickupLocation, destination, weight: numericWeight, vehicle_category: getVehicleCategory(numericWeight)?.value, price, status: PARCEL_STATUS.PENDING, currentLocation: pickupLocation, dateCreated: new Date().toISOString(), createdBy } }
       },
     },
     cancelParcel: {
