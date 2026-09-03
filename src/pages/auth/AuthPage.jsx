@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { clearAuthError, loginUser, signupUser } from '../../features/auth/authSlice'
+import Footer from '../../components/Footer'
 
-const deliveryImage = 'https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&w=1200&q=85'
+const deliveryImage = '/lorry.jpg'
 
 export default function AuthPage({ mode }) {
   const isSignup = mode === 'signup'
@@ -52,7 +53,7 @@ export default function AuthPage({ mode }) {
           </div>
         </section>
         <aside className="relative order-1 min-h-72 overflow-hidden bg-ink lg:order-2 lg:min-h-0">
-          <img className="h-full w-full object-cover" src={deliveryImage} alt="Delivery parcel ready for dispatch" />
+          <img className="h-full w-full object-cover" src={deliveryImage} alt="Lorry being loaded with delivery items" />
           <div className="absolute inset-0 bg-ink/35" />
           <div className="absolute inset-x-0 top-0 p-8 text-paper sm:p-10">
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-amber">Deliveroo</p>
@@ -61,6 +62,7 @@ export default function AuthPage({ mode }) {
           </div>
         </aside>
       </div>
+      <Footer />
     </main>
   )
 }
