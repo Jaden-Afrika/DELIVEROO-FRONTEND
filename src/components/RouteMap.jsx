@@ -12,13 +12,13 @@ const pickupIcon = new L.Icon({
 })
 const NAIROBI_CENTER = { lat: -1.286389, lng: 36.817223 }
 
-function FitBounds({ pickupCoord, destCoord }) {
+function FitBounds({ pickupCoord, destCoord, compact = false }) {
   const map = useMap()
   useEffect(() => {
     if (pickupCoord && destCoord) {
-      map.fitBounds([[pickupCoord.lat, pickupCoord.lng], [destCoord.lat, destCoord.lng]], { padding: [30, 30] })
+      map.fitBounds([[pickupCoord.lat, pickupCoord.lng], [destCoord.lat, destCoord.lng]], { padding: compact ? [12, 12] : [30, 30] })
     }
-  }, [pickupCoord, destCoord, map])
+  }, [pickupCoord, destCoord, map, compact])
   return null
 }
 
@@ -33,6 +33,7 @@ export default function RouteMap({
   estimatedTravelTime,
   onRouteCalculated,
   onStatusChange,
+  compact = false,
 }) {
   const [pickupCoord, setPickupCoord] = useState(null)
   const [destCoord, setDestCoord] = useState(null)
@@ -122,5 +123,5 @@ export default function RouteMap({
       ? 'Pickup location not available for this parcel'
       : 'Map data not available for this parcel'
 
-  return <div className="overflow-hidden rounded-xl border border-slate-200 bg-paper"><div className="h-56"><MapContainer center={[center.lat, center.lng]} zoom={bothPointsReady ? 12 : 11} style={{ width: '100%', height: '100%' }} scrollWheelZoom={false}><TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />{pickupCoord && <Marker position={[pickupCoord.lat, pickupCoord.lng]} icon={pickupIcon} />}{destCoord && <Marker position={[destCoord.lat, destCoord.lng]} icon={pickupIcon} />}{bothPointsReady && <Polyline positions={routeGeometry && routeGeometry.length > 1 ? routeGeometry.map((point) => [point.lat, point.lng]) : [[pickupCoord.lat, pickupCoord.lng], [destCoord.lat, destCoord.lng]]} pathOptions={{ color: '#F5A524', weight: 4 }} />}<FitBounds pickupCoord={pickupCoord} destCoord={destCoord} /></MapContainer></div>{loading && <p className="border-t border-slate-200 px-3 py-2 text-xs text-fog">Calculating route...</p>}{error && <p className="border-t border-caution/30 bg-caution/10 px-3 py-2 text-xs text-caution">{error}</p>}{!loading && !error && !bothPointsReady && <p className="border-t border-slate-200 px-3 py-2 text-xs text-fog">{missingLocationMessage}</p>}{!loading && !error && bothPointsReady && (durationText || distanceKm != null) && <div className="flex items-center justify-between border-t border-slate-200 bg-paper px-3 py-2 text-xs"><span className="text-fog">{durationText ? 'Estimated travel time' : 'Route distance'}</span><span className="font-mono text-ink">{durationText || `${distanceKm} km`}</span></div>}</div>
+  return <div className="overflow-hidden rounded-xl border border-slate-200 bg-paper"><div className={compact ? 'h-[120px]' : 'h-56'}><MapContainer center={[center.lat, center.lng]} zoom={bothPointsReady ? 12 : 11} style={{ width: '100%', height: '100%' }} scrollWheelZoom={false} dragging={!compact} touchZoom={!compact} doubleClickZoom={!compact} boxZoom={!compact} keyboard={!compact} zoomControl={!compact} attributionControl={!compact}><TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />{pickupCoord && <Marker position={[pickupCoord.lat, pickupCoord.lng]} icon={pickupIcon} />}{destCoord && <Marker position={[destCoord.lat, destCoord.lng]} icon={pickupIcon} />}{bothPointsReady && <Polyline positions={routeGeometry && routeGeometry.length > 1 ? routeGeometry.map((point) => [point.lat, point.lng]) : [[pickupCoord.lat, pickupCoord.lng], [destCoord.lat, destCoord.lng]]} pathOptions={{ color: '#F5A524', weight: 4 }} />}<FitBounds pickupCoord={pickupCoord} destCoord={destCoord} compact={compact} /></MapContainer></div>{!compact && loading && <p className="border-t border-slate-200 px-3 py-2 text-xs text-fog">Calculating route...</p>}{!compact && error && <p className="border-t border-caution/30 bg-caution/10 px-3 py-2 text-xs text-caution">{error}</p>}{!compact && !loading && !error && !bothPointsReady && <p className="border-t border-slate-200 px-3 py-2 text-xs text-fog">{missingLocationMessage}</p>}{!compact && !loading && !error && bothPointsReady && (durationText || distanceKm != null) && <div className="flex items-center justify-between border-t border-slate-200 bg-paper px-3 py-2 text-xs"><span className="text-fog">{durationText ? 'Estimated travel time' : 'Route distance'}</span><span className="font-mono text-ink">{durationText || `${distanceKm} km`}</span></div>}</div>
 }
