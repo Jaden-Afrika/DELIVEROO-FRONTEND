@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { loadMyParcels, selectParcelsForUser } from '../features/parcels/parcelsSlice'
+import { loadAllParcels } from '../features/admin/adminSlice'
 import StatusBadge from '../components/StatusBadge'
 import RouteMap from '../components/RouteMap'
 import { formatCurrency } from '../utils/formatCurrency'
@@ -12,6 +13,7 @@ const FILTERS = [
   { value: 'pending', label: 'Pending' },
   { value: 'in_transit', label: 'In Transit' },
   { value: 'delivered', label: 'Delivered' },
+  { value: 'cancelled', label: 'Cancelled' },
 ]
 
 function formatDate(value) {
@@ -32,18 +34,27 @@ export default function OrdersPage() {
   const [activeFilter, setActiveFilter] = useState('all')
   const dispatch = useDispatch()
   const user = useSelector((state) => state.auth.user)
-  const parcels = useSelector((state) => selectParcelsForUser(state, user))
+  const isAdmin = user?.role === 'admin'
+  const userParcels = useSelector((state) => selectParcelsForUser(state, user))
+  const adminParcels = useSelector((state) => state.admin.items)
   const { listStatus, listError } = useSelector((state) => state.parcels)
+  const { listStatus: adminListStatus, listError: adminListError } = useSelector((state) => state.admin)
+  const parcels = isAdmin ? adminParcels : userParcels
+  const currentListStatus = isAdmin ? adminListStatus : listStatus
+  const currentListError = isAdmin ? adminListError : listError
 
   useEffect(() => {
-    if (listStatus === 'idle') dispatch(loadMyParcels())
-  }, [dispatch, listStatus])
+    if (isAdmin) {
+      if (adminListStatus === 'idle') dispatch(loadAllParcels())
+    } else if (listStatus === 'idle') dispatch(loadMyParcels())
+  }, [adminListStatus, dispatch, isAdmin, listStatus])
 
   const summary = useMemo(() => ({
     total: parcels.length,
     pending: parcels.filter((parcel) => parcel.status === 'pending').length,
     inTransit: parcels.filter((parcel) => parcel.status === 'in_transit').length,
     delivered: parcels.filter((parcel) => parcel.status === 'delivered').length,
+    cancelled: parcels.filter((parcel) => parcel.status === 'cancelled').length,
   }), [parcels])
 
   const filteredParcels = useMemo(
@@ -56,6 +67,7 @@ export default function OrdersPage() {
     ['Pending', summary.pending, 'border-amber/30 bg-amber/15 text-amber-600', 'text-amber-600'],
     ['In transit', summary.inTransit, 'border-route/20 bg-route/10 text-route', 'text-route'],
     ['Delivered', summary.delivered, 'border-depot/20 bg-depot/10 text-depot', 'text-depot'],
+    ['Cancelled', summary.cancelled, 'border-caution/20 bg-caution/10 text-caution', 'text-caution'],
   ]
   const activeFilterLabel = FILTERS.find((filter) => filter.value === activeFilter)?.label.toLowerCase()
 
@@ -73,7 +85,7 @@ export default function OrdersPage() {
       {FILTERS.map((filter) => <button key={filter.value} type="button" role="tab" aria-selected={activeFilter === filter.value} onClick={() => setActiveFilter(filter.value)} className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition ${activeFilter === filter.value ? 'border-amber text-ink' : 'border-transparent text-fog hover:text-ink'}`}>{filter.label}</button>)}
     </div>
 
-    {listStatus === 'loading' ? <p className="mt-8 text-sm text-fog">Loading your orders...</p> : listStatus === 'failed' ? <p className="mt-8 text-sm text-caution">{listError || 'Could not load your orders.'}</p> : parcels.length === 0 ? <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No orders yet</p><p className="mt-2 text-sm text-fog">{user?.role === 'admin' ? 'Completed and active orders will appear in the admin workspace.' : "You haven't sent any parcels yet. Create your first parcel to start tracking a delivery."}</p></div> : filteredParcels.length === 0 ? <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No {activeFilterLabel} parcels yet</p><p className="mt-2 text-sm text-fog">Try another status to see the rest of your deliveries.</p></div> : <ul className="mt-6 grid gap-4 lg:grid-cols-2">
+    {currentListStatus === 'loading' ? <p className="mt-8 text-sm text-fog">{isAdmin ? 'Loading all orders...' : 'Loading your orders...'}</p> : currentListStatus === 'failed' ? <p className="mt-8 text-sm text-caution">{currentListError || 'Could not load orders.'}</p> : parcels.length === 0 ? <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No orders yet</p><p className="mt-2 text-sm text-fog">{user?.role === 'admin' ? 'Orders from all users will appear here as they are created.' : "You haven't sent any parcels yet. Create your first parcel to start tracking a delivery."}</p></div> : filteredParcels.length === 0 ? <div className="mt-10 rounded-xl border border-dashed border-slate-300 bg-paper px-6 py-16 text-center"><p className="font-display text-lg font-semibold text-ink">No {activeFilterLabel} parcels yet</p><p className="mt-2 text-sm text-fog">Try another status to see the rest of your deliveries.</p></div> : <ul className="mt-6 grid gap-4 lg:grid-cols-2">
       {filteredParcels.map((parcel) => {
         const weightKg = parcel.weight_kg ?? parcel.weightKg ?? parcel.weight
         const vehicle = getVehicleCategoryByValue(parcel.vehicle_category ?? parcel.vehicleCategory) ?? getVehicleCategory(weightKg)
