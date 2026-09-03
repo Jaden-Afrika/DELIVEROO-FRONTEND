@@ -51,7 +51,12 @@ export default function OrdersPage() {
     [activeFilter, parcels],
   )
 
-  const stats = [['Total orders', summary.total], ['Pending', summary.pending], ['In transit', summary.inTransit], ['Delivered', summary.delivered]]
+  const stats = [
+    ['Total orders', summary.total, 'border-ink/15 bg-ink text-paper', 'text-paper/70'],
+    ['Pending', summary.pending, 'border-amber/30 bg-amber/15 text-amber-600', 'text-amber-600'],
+    ['In transit', summary.inTransit, 'border-route/20 bg-route/10 text-route', 'text-route'],
+    ['Delivered', summary.delivered, 'border-depot/20 bg-depot/10 text-depot', 'text-depot'],
+  ]
   const activeFilterLabel = FILTERS.find((filter) => filter.value === activeFilter)?.label.toLowerCase()
 
   return <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
@@ -61,7 +66,7 @@ export default function OrdersPage() {
     </div>
 
     <section aria-label="Order summary" className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-      {stats.map(([label, value]) => <div key={label} className="rounded-xl border border-slate-200 bg-paper p-4"><p className="font-mono text-[11px] uppercase tracking-wide text-fog">{label}</p><p className="mt-2 font-display text-2xl font-bold text-ink">{value}</p></div>)}
+      {stats.map(([label, value, cardStyle, labelStyle]) => <div key={label} className={`rounded-xl border p-4 shadow-sm ${cardStyle}`}><p className={`font-mono text-[11px] uppercase tracking-wide ${labelStyle}`}>{label}</p><p className="mt-2 font-display text-2xl font-bold">{value}</p></div>)}
     </section>
 
     <div className="mt-8 flex gap-2 overflow-x-auto border-b border-slate-200" role="tablist" aria-label="Filter orders by status">
