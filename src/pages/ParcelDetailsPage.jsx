@@ -1,6 +1,7 @@
+import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { selectParcelForUser } from '../features/parcels/parcelsSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { loadParcel, selectParcelForUser } from '../features/parcels/parcelsSlice'
 import StatusBadge from '../components/StatusBadge'
 import CancelDeliveryButton from '../components/CancelDeliveryButton'
 import ChangeDestinationForm from '../components/ChangeDestinationForm'
@@ -18,10 +19,22 @@ function formatDate(isoString) {
 
 export default function ParcelDetailsPage() {
   const { id } = useParams()
+  const dispatch = useDispatch()
   const currentUser = useSelector((state) => state.auth.user)
   const parcel = useSelector((state) => selectParcelForUser(state, id, currentUser))
+  const { detailStatus, detailError } = useSelector((state) => state.parcels)
+
+  useEffect(() => {
+    if (!parcel && detailStatus === 'idle') dispatch(loadParcel(id))
+  }, [detailStatus, dispatch, id, parcel])
 
   if (!parcel) {
+    if (detailStatus === 'loading') {
+      return <p className="mx-auto max-w-3xl px-5 py-10 text-sm text-fog sm:px-8">Loading parcel...</p>
+    }
+    if (detailStatus === 'failed') {
+      return <p className="mx-auto max-w-3xl px-5 py-10 text-sm text-caution sm:px-8">{detailError || 'Could not load this parcel.'}</p>
+    }
     return <p className="mx-auto max-w-3xl px-5 py-10 text-sm text-fog sm:px-8">Parcel not found.</p>
   }
 

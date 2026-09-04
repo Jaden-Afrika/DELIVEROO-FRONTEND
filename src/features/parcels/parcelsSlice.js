@@ -1,12 +1,15 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { cancelParcel as cancelParcelRequest, createParcel as createParcelRequest, fetchMyParcels, updateParcelDestination } from './parcelsAPI'
+import { cancelParcel as cancelParcelRequest, createParcel as createParcelRequest, fetchMyParcels, fetchParcel, updateParcelDestination } from './parcelsAPI'
 import { getVehicleCategory } from '../../utils/vehicleCategory'
 
 export const PARCEL_STATUS = { PENDING: 'pending', IN_TRANSIT: 'in_transit', DELIVERED: 'delivered', CANCELLED: 'cancelled' }
-const initialState = { byId: {}, listStatus: 'idle', listError: null, createStatus: 'idle', createError: null, cancellingId: null, destinationUpdateStatus: 'idle', destinationUpdateError: null, destinationUpdatingId: null }
+const initialState = { byId: {}, listStatus: 'idle', listError: null, createStatus: 'idle', createError: null, cancellingId: null, destinationUpdateStatus: 'idle', destinationUpdateError: null, destinationUpdatingId: null, detailStatus: 'idle', detailError: null }
 
 export const loadMyParcels = createAsyncThunk('parcels/loadMyParcels', async (_, { rejectWithValue }) => {
   try { return await fetchMyParcels() } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not load your orders.') }
+})
+export const loadParcel = createAsyncThunk('parcels/loadParcel', async (id, { rejectWithValue }) => {
+  try { return await fetchParcel(id) } catch (error) { return rejectWithValue(error.response?.data?.message || error.response?.data?.error?.message || error.message || 'Could not load this parcel.') }
 })
 
 export const submitParcel = createAsyncThunk('parcels/submitParcel', async (payload, { rejectWithValue }) => {
@@ -56,6 +59,9 @@ const parcelsSlice = createSlice({
       .addCase(loadMyParcels.pending, (state) => { state.listStatus = 'loading'; state.listError = null })
       .addCase(loadMyParcels.fulfilled, (state, action) => { state.listStatus = 'succeeded'; state.byId = Object.fromEntries(action.payload.map((parcel) => [parcel.id, parcel])) })
       .addCase(loadMyParcels.rejected, (state, action) => { state.listStatus = 'failed'; state.listError = action.payload })
+      .addCase(loadParcel.pending, (state) => { state.detailStatus = 'loading'; state.detailError = null })
+      .addCase(loadParcel.fulfilled, (state, action) => { state.detailStatus = 'succeeded'; state.detailError = null; state.byId[action.payload.id] = action.payload })
+      .addCase(loadParcel.rejected, (state, action) => { state.detailStatus = 'failed'; state.detailError = action.payload })
       .addCase(submitParcel.pending, (state) => { state.createStatus = 'loading'; state.createError = null })
       .addCase(submitParcel.fulfilled, (state, action) => { state.createStatus = 'succeeded'; state.byId[action.payload.id] = action.payload })
       .addCase(submitParcel.rejected, (state, action) => { state.createStatus = 'failed'; state.createError = action.payload })
