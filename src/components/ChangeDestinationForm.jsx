@@ -9,7 +9,8 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
   const [blockedMessage, setBlockedMessage] = useState('')
   const [validationError, setValidationError] = useState('')
 
-  const isOwner = parcel.createdBy === currentUserId
+  const ownerId = parcel.createdBy ?? parcel.ownerId ?? parcel.owner_id
+  const isOwner = String(ownerId) === String(currentUserId)
   const isDelivered = parcel.status === PARCEL_STATUS.DELIVERED
 
   if (!isOwner) return null
