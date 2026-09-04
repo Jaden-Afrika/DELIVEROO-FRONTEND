@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { cancelParcel as cancelParcelRequest, createParcel as createParcelRequest, fetchMyParcels } from './parcelsAPI'
+import { cancelParcel as cancelParcelRequest, createParcel as createParcelRequest, fetchMyParcels, updateParcelDestination } from './parcelsAPI'
 import { getVehicleCategory } from '../../utils/vehicleCategory'
 
 export const PARCEL_STATUS = { PENDING: 'pending', IN_TRANSIT: 'in_transit', DELIVERED: 'delivered', CANCELLED: 'cancelled' }
-const initialState = { byId: {}, listStatus: 'idle', listError: null, createStatus: 'idle', createError: null, cancellingId: null }
+const initialState = { byId: {}, listStatus: 'idle', listError: null, createStatus: 'idle', createError: null, cancellingId: null, destinationUpdateStatus: 'idle', destinationUpdateError: null, destinationUpdatingId: null }
 
 export const loadMyParcels = createAsyncThunk('parcels/loadMyParcels', async (_, { rejectWithValue }) => {
   try { return await fetchMyParcels() } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not load your orders.') }
@@ -17,6 +17,9 @@ export const submitParcel = createAsyncThunk('parcels/submitParcel', async (payl
 })
 export const cancelOrder = createAsyncThunk('parcels/cancelOrder', async (id, { rejectWithValue }) => {
   try { return await cancelParcelRequest(id) } catch (error) { return rejectWithValue(error.response?.data?.message || 'Could not cancel this order.') }
+})
+export const updateDestination = createAsyncThunk('parcels/updateDestination', async ({ id, destination }, { rejectWithValue }) => {
+  try { return await updateParcelDestination(id, destination) } catch (error) { return rejectWithValue(error.response?.data?.message || error.response?.data?.error || error.message || 'Could not update the destination.') }
 })
 
 const parcelsSlice = createSlice({
@@ -59,6 +62,9 @@ const parcelsSlice = createSlice({
       .addCase(cancelOrder.pending, (state, action) => { state.cancellingId = action.meta.arg })
       .addCase(cancelOrder.fulfilled, (state, action) => { state.cancellingId = null; state.byId[action.payload.id] = action.payload })
       .addCase(cancelOrder.rejected, (state) => { state.cancellingId = null })
+      .addCase(updateDestination.pending, (state, action) => { state.destinationUpdateStatus = 'loading'; state.destinationUpdateError = null; state.destinationUpdatingId = action.meta.arg.id })
+      .addCase(updateDestination.fulfilled, (state, action) => { state.destinationUpdateStatus = 'succeeded'; state.destinationUpdateError = null; state.destinationUpdatingId = null; state.byId[action.payload.id] = action.payload })
+      .addCase(updateDestination.rejected, (state, action) => { state.destinationUpdateStatus = 'failed'; state.destinationUpdateError = action.payload; state.destinationUpdatingId = null })
   },
 })
 

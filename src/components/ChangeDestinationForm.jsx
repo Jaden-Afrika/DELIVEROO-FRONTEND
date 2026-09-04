@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { changeDestination, PARCEL_STATUS } from '../features/parcels/parcelsSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { PARCEL_STATUS, updateDestination } from '../features/parcels/parcelsSlice'
 
 export default function ChangeDestinationForm({ parcel, currentUserId }) {
   const dispatch = useDispatch()
+  const { destinationUpdateStatus, destinationUpdateError, destinationUpdatingId } = useSelector((state) => state.parcels)
   const [isEditing, setIsEditing] = useState(false)
   const [draftDestination, setDraftDestination] = useState(parcel.destination)
   const [blockedMessage, setBlockedMessage] = useState('')
@@ -33,8 +34,9 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
       return
     }
     setValidationError('')
-    dispatch(changeDestination(parcel.id, trimmed))
-    setIsEditing(false)
+    dispatch(updateDestination({ id: parcel.id, destination: trimmed })).then((result) => {
+      if (updateDestination.fulfilled.match(result)) setIsEditing(false)
+    })
   }
 
   if (!isEditing) {
@@ -67,8 +69,9 @@ export default function ChangeDestinationForm({ parcel, currentUserId }) {
         <button type="button" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-ink hover:border-amber" onClick={() => setIsEditing(false)}>
           Cancel
         </button>
-        <button type="submit" className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-paper hover:ring-2 hover:ring-amber">
-          Save destination
+        {destinationUpdateStatus === 'failed' && <p className="text-sm text-caution">{destinationUpdateError}</p>}
+        <button type="submit" disabled={destinationUpdateStatus === 'loading' && String(destinationUpdatingId) === String(parcel.id)} className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-paper hover:ring-2 hover:ring-amber disabled:cursor-not-allowed disabled:opacity-50">
+          {destinationUpdateStatus === 'loading' && String(destinationUpdatingId) === String(parcel.id) ? 'Saving...' : 'Save destination'}
         </button>
       </div>
     </form>
