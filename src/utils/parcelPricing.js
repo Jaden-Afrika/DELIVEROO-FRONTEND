@@ -14,7 +14,8 @@ export function getPricingWeightCategory(weightKg) {
 }
 
 export function estimatePrice(weightKg, distanceKm = 0) {
-  const match = WEIGHT_CATEGORIES.find((category) => category.value === getPricingWeightCategory(weightKg))
-  if (!match) return 0
-  return Math.round(match.baseFee + Math.max(distanceKm, 0) * match.perKmRate)
+  if (weightKg === '' || weightKg === null || weightKg === undefined) return 0
+  const weight = Number(weightKg)
+  if (!Number.isFinite(weight) || weight < 0) return 0
+  return Math.round(150 + Math.max(Number(distanceKm), 0) * 15 * weight)
 }
